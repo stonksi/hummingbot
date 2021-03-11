@@ -661,9 +661,9 @@ class CryptoComExchange(ExchangeBase):
             return
 
         if tracked_order.order_type is OrderType.LIMIT_MAKER:
-            feepercent = "0.036"
+            feepercent = Decimal(0.036)
         else:
-            feepercent = "0.06"
+            feepercent = Decimal(0.06)
 
         self.trigger_event(
             MarketEvent.OrderFilled,
@@ -675,7 +675,7 @@ class CryptoComExchange(ExchangeBase):
                 tracked_order.order_type,
                 Decimal(str(trade_msg["traded_price"])),
                 Decimal(str(trade_msg["traded_quantity"])),
-                TradeFee(0.0, ["CRO", feepercent]),
+                TradeFee(Decimal(0.0), ["CRO", feepercent]),
                 exchange_trade_id=trade_msg["order_id"]
             )
         )
