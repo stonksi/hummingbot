@@ -166,17 +166,19 @@ class HistoryCommand:
         assets_df: pd.DataFrame = pd.DataFrame(data=assets_data, columns=assets_columns)
         lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
+        fees = Decimal(0)
+
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
             ["Current portfolio value ", f"{smart_round(perf.cur_value, precision)} {quote}"],
             ["Trade P&L               ", f"{smart_round(perf.trade_pnl, precision)} {quote}"]
         ]
         perf_data.extend(
-            ["Fees paid               ", f"{smart_round(fee_amount, precision)} {fee_token}"]
+            ["Fees paid               ", f"{smart_round((fees += (Decimal(0,4) * fee_amount)), precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
         )
         perf_data.extend(
-            [["Total P&L               ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
+            [["Total P&L               ", f"{smart_round(perf.trade_pnl + fees, precision)} {quote}"],
              ["Return %                ", f"{perf.return_pct:.2%}"]]
         )
         perf_df: pd.DataFrame = pd.DataFrame(data=perf_data)
