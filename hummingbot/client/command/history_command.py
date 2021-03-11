@@ -167,10 +167,7 @@ class HistoryCommand:
         lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
         # Fix for staking discount on Crypto.com
-        if "CRO" in perf.fees:
-            cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
-        else:
-            cro_refund = Decimal(0.0)
+        cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
 
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
@@ -178,7 +175,7 @@ class HistoryCommand:
             ["Trade P&L               ", f"{smart_round(perf.trade_pnl, precision)} {quote}"]
         ]
         perf_data.extend(
-            ["Fees                    ", f"{smart_round(-fee_amount, precision)} {fee_token}"]
+            ["Fees paid               ", f"{smart_round(-fee_amount, precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
         )
         perf_data.extend(
