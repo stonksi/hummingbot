@@ -767,9 +767,9 @@ class CryptoComExchange(ExchangeBase):
         is_maker = order_type is OrderType.LIMIT_MAKER
 
         if is_maker:
-            return TradeFee(percent=decimal.Decimal(0.036))
+            return TradeFee(percent=0.036)
         else:
-            return TradeFee(percent=decimal.Decimal(0.06))
+            return TradeFee(percent=0.06)
 
     async def _iter_user_event_queue(self) -> AsyncIterable[Dict[str, any]]:
         while True:
