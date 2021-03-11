@@ -166,7 +166,11 @@ class HistoryCommand:
         assets_df: pd.DataFrame = pd.DataFrame(data=assets_data, columns=assets_columns)
         lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
-        fees = Decimal(0)
+        # Fix for staking discount on Crypto.com
+        for fee_token, fee_amount in perf.fees.items():
+            if fee_token=="CRO":
+                fee_amount *= Decimal(0.4)
+        # End fix
 
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
@@ -174,7 +178,7 @@ class HistoryCommand:
             ["Trade P&L               ", f"{smart_round(perf.trade_pnl, precision)} {quote}"]
         ]
         perf_data.extend(
-            ["Fees paid               ", f"{smart_round((fees += (Decimal(0,4) * fee_amount)), precision)} {fee_token}"]
+            ["Fees paid               ", f"{smart_round(fee_amount, precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
         )
         perf_data.extend(
