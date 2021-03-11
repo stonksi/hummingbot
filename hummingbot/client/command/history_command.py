@@ -167,25 +167,25 @@ class HistoryCommand:
         lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
         # Fix for staking discount on Crypto.com
-        fees = Decimal(0.0)
+        cro_refund = Decimal(0.0)
         for fee_token, fee_amount in perf.fees.items():
             if fee_token=="CRO":
-                fee_amount *= Decimal(0.4)
-            fees += fee_amount
+                cro_refund += (fee_amount * Decimal(0.6))
         # End fix
-
+        
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
             ["Current portfolio value ", f"{smart_round(perf.cur_value, precision)} {quote}"],
             ["Trade P&L               ", f"{smart_round(perf.trade_pnl, precision)} {quote}"]
         ]
         perf_data.extend(
-            ["Fees paid               ", f"{smart_round(fee_amount, precision)} {fee_token}"]
+            ["Fees                    ", f"{smart_round(-fee_amount, precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
+            ["CRO refund              ", f"{smart_round(cro_refund, precision)}"]
         )
         perf_data.extend(
-            [["Total P&L               ", f"{smart_round((perf.trade_pnl + fees), precision)} {quote}"],
-             ["Return %                ", f"{perf.return_pct:.2%}"]]
+            [["Total P&L               ", f"{smart_round((perf.total_pnl + cro_refund), precision)} {quote}"],
+             ["Return % (w/o refund)   ", f"{perf.return_pct:.2%}"]]
         )
         perf_df: pd.DataFrame = pd.DataFrame(data=perf_data)
         lines.extend(["", "  Performance:"] +
