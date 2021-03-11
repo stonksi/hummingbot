@@ -659,6 +659,12 @@ class CryptoComExchange(ExchangeBase):
         updated = tracked_order.update_with_trade_update(trade_msg)
         if not updated:
             return
+
+        if tracked_order.order_type is OrderType.LIMIT_MAKER:
+            feepercent = "0.036"
+        else:
+            feepercent = "0.06"
+
         self.trigger_event(
             MarketEvent.OrderFilled,
             OrderFilledEvent(
@@ -669,7 +675,7 @@ class CryptoComExchange(ExchangeBase):
                 tracked_order.order_type,
                 Decimal(str(trade_msg["traded_price"])),
                 Decimal(str(trade_msg["traded_quantity"])),
-                TradeFee(0.0, [(trade_msg["fee_currency"], Decimal(str(trade_msg["fee"])))]),
+                TradeFee(0.0, ["CRO", feepercent]),
                 exchange_trade_id=trade_msg["order_id"]
             )
         )
@@ -759,7 +765,11 @@ class CryptoComExchange(ExchangeBase):
         maker order.
         """
         is_maker = order_type is OrderType.LIMIT_MAKER
-        return TradeFee(percent=self.estimate_fee_pct(is_maker))
+
+        if is_maker:
+            return TradeFee(percent=0.036)
+        else:
+            return TradeFee(percent=0.06)
 
     async def _iter_user_event_queue(self) -> AsyncIterable[Dict[str, any]]:
         while True:
