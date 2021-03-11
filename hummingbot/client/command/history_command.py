@@ -171,7 +171,6 @@ class HistoryCommand:
         for fee_token, fee_amount in perf.fees.items():
             if fee_token=="CRO":
                 cro_refund += (fee_amount * Decimal(0.6))
-        # End fix
         
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
@@ -181,7 +180,9 @@ class HistoryCommand:
         perf_data.extend(
             ["Fees                    ", f"{smart_round(-fee_amount, precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
-            ["CRO refund              ", f"{smart_round(cro_refund, precision)}"]
+        )
+        perf_data.extend(
+            ["CRO refund              ", f"{smart_round(cro_refund, precision)} 'CRO'"]
         )
         perf_data.extend(
             [["Total P&L               ", f"{smart_round((perf.total_pnl + cro_refund), precision)} {quote}"],
