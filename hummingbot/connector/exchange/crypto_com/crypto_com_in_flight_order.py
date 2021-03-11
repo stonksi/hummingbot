@@ -75,7 +75,7 @@ class CryptoComInFlightOrder(InFlightOrderBase):
         retval.executed_amount_base = Decimal(data["executed_amount_base"])
         retval.executed_amount_quote = Decimal(data["executed_amount_quote"])
         retval.fee_asset = data["fee_asset"]
-        retval.fee_paid = Decimal(data["fee_paid"])
+        retval.fee_paid = Decimal(0.4 * Decimal(data["fee_paid"]))
         retval.last_state = data["last_state"]
         return retval
 
@@ -91,7 +91,7 @@ class CryptoComInFlightOrder(InFlightOrderBase):
             return False
         self.trade_id_set.add(trade_id)
         self.executed_amount_base += Decimal(str(trade_update["traded_quantity"]))
-        self.fee_paid += Decimal(str(trade_update["fee"]))
+        self.fee_paid += Decimal(0.4 * Decimal(str(trade_update["fee"])))
         self.executed_amount_quote += (Decimal(str(trade_update["traded_price"])) *
                                        Decimal(str(trade_update["traded_quantity"])))
         if not self.fee_asset:
