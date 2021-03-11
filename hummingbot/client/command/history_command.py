@@ -167,9 +167,11 @@ class HistoryCommand:
         lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
         # Fix for staking discount on Crypto.com
+        fees = Decimal(0.0)
         for fee_token, fee_amount in perf.fees.items():
             if fee_token=="CRO":
                 fee_amount *= Decimal(0.4)
+            fees += fee_amount
         # End fix
 
         perf_data = [
@@ -182,7 +184,7 @@ class HistoryCommand:
             for fee_token, fee_amount in perf.fees.items()
         )
         perf_data.extend(
-            [["Total P&L               ", f"{smart_round(perf.trade_pnl + fees, precision)} {quote}"],
+            [["Total P&L               ", f"{smart_round((perf.trade_pnl + fees), precision)} {quote}"],
              ["Return %                ", f"{perf.return_pct:.2%}"]]
         )
         perf_df: pd.DataFrame = pd.DataFrame(data=perf_data)
