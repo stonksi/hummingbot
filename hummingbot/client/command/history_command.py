@@ -168,10 +168,9 @@ class HistoryCommand:
 
         # Fix for staking discount on Crypto.com
         cro_refund = Decimal(0.0)
-        for fee_token, fee_amount in perf.fees.items():
+        for fee_token, fee_amount in perf.fees:
             if fee_token=="CRO":
                 cro_refund += (fee_amount * Decimal(0.6))
-                break
 
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
