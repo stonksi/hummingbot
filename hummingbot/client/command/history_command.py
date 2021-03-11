@@ -179,10 +179,8 @@ class HistoryCommand:
             for fee_token, fee_amount in perf.fees.items()
         )
         perf_data.extend(
-            ["CRO refund              ", f"{smart_round(cro_refund, precision)} CRO"]
-        )
-        perf_data.extend(
-            [["Total P&L               ", f"{smart_round((perf.total_pnl + cro_refund), precision)} {quote}"],
+            [["CRO refund              ", f"{smart_round(cro_refund, precision)} CRO"],
+             ["Total P&L               ", f"{smart_round((perf.total_pnl + cro_refund), precision)} {quote}"],
              ["Return % (w/o refund)   ", f"{perf.return_pct:.2%}"]]
         )
         perf_df: pd.DataFrame = pd.DataFrame(data=perf_data)
