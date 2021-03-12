@@ -170,9 +170,9 @@ class HistoryCommand:
         cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
         quote_refund = cro_refund
         
-        if (quote == "USDT" or quote == "USDC")
+        if (quote == "USDT" or quote == "USDC"):
             quote_refund *= Decimal(0.2)
-        else if (quote == "BTC")
+        elif (quote == "BTC"):
             quote_refund *= Decimal(0.0000035)
 
         perf_data = [
