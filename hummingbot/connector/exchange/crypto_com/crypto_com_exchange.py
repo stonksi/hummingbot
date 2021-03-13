@@ -42,6 +42,8 @@ from hummingbot.connector.exchange.crypto_com.crypto_com_in_flight_order import 
 from hummingbot.connector.exchange.crypto_com import crypto_com_utils
 from hummingbot.connector.exchange.crypto_com import crypto_com_constants as Constants
 from hummingbot.core.data_type.common import OpenOrder
+from hummingbot.client.command import StopCommand
+from hummingbot.client.command import StartCommand
 ctce_logger = None
 s_decimal_NaN = Decimal("nan")
 
@@ -337,10 +339,10 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            await self.stop_network()
-            await asyncio.sleep(1)
-            await self.start_network()
             #raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
+            print(f"Error parsing data from {url}. Error: {str(e)} **RESTARTING BOT**")
+            await StopCommand.stop(self)
+            await StartCommand.start(self)          
         if response.status != 200:
             raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
                           f"Message: {parsed_response}")
@@ -539,15 +541,15 @@ class CryptoComExchange(ExchangeBase):
         #except asyncio.CancelledError:
             #raise
         except Exception as e:
-            self.logger().network(
-                f"Failed to cancel order {order_id}: {str(e)}",
-                exc_info=True,
-                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-                                f"Check API key and network connection."
-            )
-            await self.stop_network()
-            await asyncio.sleep(1)
-            await self.start_network()
+            #self.logger().network(
+            #    f"Failed to cancel order {order_id}: {str(e)}",
+            #    exc_info=True,
+            #    app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+            #                    f"Check API key and network connection."
+            #)
+            print(f"Failed to cancel the order {order_id} on CryptoCom. **RESTARTING BOT**")
+            await StopCommand.stop(self)
+            await StartCommand.start(self)
 
     async def _status_polling_loop(self):
         """
