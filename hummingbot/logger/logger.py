@@ -34,7 +34,7 @@ class HummingbotLogger(PythonLogger):
         msg = msg
     def info(self, msg, *args, **kwargs):
         #SkipLogging
-        self.network(self, msg, msg, *args, **kwargs)
+        msg = msg
 
     def log(self, level, msg, *args, **kwargs):
         #SkipLogging

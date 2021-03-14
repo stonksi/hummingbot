@@ -972,10 +972,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"({market_info.trading_pair}) Maker buy order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
+                    self.notify_hb_app(
+                        f"({market_info.trading_pair}) Maker buy order of "
+                        f"{order_filled_event.amount} {market_info.base_asset} filled."
+                    )
             else:
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
                         logging.INFO,
+                        f"({market_info.trading_pair}) Maker sell order of "
+                        f"{order_filled_event.amount} {market_info.base_asset} filled."
+                    )
+                    self.notify_hb_app(
                         f"({market_info.trading_pair}) Maker sell order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
