@@ -9,6 +9,7 @@ import traceback
 from typing import Optional
 
 from .application_warning import ApplicationWarning
+from hummingbot.client.hummingbot_application import HummingbotApplication
 
 
 #  --- Copied from logging module ---
@@ -30,22 +31,42 @@ class HummingbotLogger(PythonLogger):
         super().__init__(name)
 
     def debug(self, msg, *args, **kwargs):
-        #DoNothing
-        msg = msg
+        #SkipLogging
+        app_warning: ApplicationWarning = ApplicationWarning(
+            time.time(),
+            self.name,
+            self.findCaller(),
+            msg
+        )
+        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
+        hummingbot_app.add_application_warning(app_warning)
     def info(self, msg, *args, **kwargs):
-        #DoNothing
-        msg = msg
+        #SkipLogging
+        app_warning: ApplicationWarning = ApplicationWarning(
+            time.time(),
+            self.name,
+            self.findCaller(),
+            msg
+        )
+        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
+        hummingbot_app.add_application_warning(app_warning)
 
     def log(self, level, msg, *args, **kwargs):
-        #DoNothing
-        msg = msg
+        #SkipLogging
+        app_warning: ApplicationWarning = ApplicationWarning(
+            time.time(),
+            self.name,
+            self.findCaller(),
+            msg
+        )
+        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
+        hummingbot_app.add_application_warning(app_warning)
 
-    def network(self, log_msg: str, app_warning_msg: Optional[str] = None, *args, **kwargs):
-        from hummingbot.client.hummingbot_application import HummingbotApplication
-        from . import NETWORK
+    def network(self, log_msg: str, app_warning_msg: Optional[str] = None, *args, **kwargs):       
+        #from . import NETWORK
         from os import getcwd
 
-        self.log(NETWORK, log_msg, *args, **kwargs)
+        #self.log(NETWORK, log_msg, *args, **kwargs)
         if app_warning_msg is not None and "test" not in getcwd():
             app_warning: ApplicationWarning = ApplicationWarning(
                 time.time(),
@@ -53,7 +74,7 @@ class HummingbotLogger(PythonLogger):
                 self.findCaller(),
                 app_warning_msg
             )
-            self.warning(app_warning.warning_msg)
+            #self.warning(app_warning.warning_msg)
             hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
             hummingbot_app.add_application_warning(app_warning)
 

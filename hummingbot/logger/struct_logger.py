@@ -38,4 +38,4 @@ class StructLogger(HummingbotLogger):
             else:
                 kwargs["extra"] = extra
 
-            self._log(EVENT_LOG_LEVEL, "", args, **kwargs)
+            #self._log(EVENT_LOG_LEVEL, "", args, **kwargs)
