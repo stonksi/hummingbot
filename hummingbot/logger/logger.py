@@ -29,6 +29,17 @@ class HummingbotLogger(PythonLogger):
     def __init__(self, name: str):
         super().__init__(name)
 
+    def debug(self, msg, *args, **kwargs):
+        #DoNothing
+        msg = msg
+    def info(self, msg, *args, **kwargs):
+        #DoNothing
+        msg = msg
+
+    def log(self, level, msg, *args, **kwargs):
+        #DoNothing
+        msg = msg
+
     def network(self, log_msg: str, app_warning_msg: Optional[str] = None, *args, **kwargs):
         from hummingbot.client.hummingbot_application import HummingbotApplication
         from . import NETWORK
