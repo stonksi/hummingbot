@@ -31,38 +31,14 @@ class HummingbotLogger(PythonLogger):
 
     def debug(self, msg, *args, **kwargs):
         #SkipLogging
-        from hummingbot.client.hummingbot_application import HummingbotApplication
-        app_warning: ApplicationWarning = ApplicationWarning(
-            time.time(),
-            self.name,
-            self.findCaller(),
-            msg
-        )
-        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
-        hummingbot_app.add_application_warning(app_warning)
+        msg = msg
     def info(self, msg, *args, **kwargs):
         #SkipLogging
-        from hummingbot.client.hummingbot_application import HummingbotApplication
-        app_warning: ApplicationWarning = ApplicationWarning(
-            time.time(),
-            self.name,
-            self.findCaller(),
-            msg
-        )
-        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
-        hummingbot_app.add_application_warning(app_warning)
+        msg = msg
 
     def log(self, level, msg, *args, **kwargs):
         #SkipLogging
-        from hummingbot.client.hummingbot_application import HummingbotApplication
-        app_warning: ApplicationWarning = ApplicationWarning(
-            time.time(),
-            self.name,
-            self.findCaller(),
-            msg
-        )
-        hummingbot_app: HummingbotApplication = HummingbotApplication.main_application()
-        hummingbot_app.add_application_warning(app_warning)
+        msg = msg
 
     def network(self, log_msg: str, app_warning_msg: Optional[str] = None, *args, **kwargs):      
         from hummingbot.client.hummingbot_application import HummingbotApplication
