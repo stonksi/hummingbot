@@ -337,6 +337,7 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
+            await self.cancel_all(3) # Cancel all active to avoid hang-bug
             raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
         if response.status != 200:
             raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
@@ -536,6 +537,7 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
+            await self.cancel_all(3) # Cancel all active to avoid hang-bug
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
