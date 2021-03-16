@@ -6,7 +6,8 @@ from sqlalchemy import (
     JSON,
     Integer,
     BigInteger,
-    Index
+    Index,
+    String
 )
 
 from . import HummingbotBase
@@ -18,8 +19,8 @@ class MarketState(HummingbotBase):
                           "config_file_path", "market", unique=True),)
 
     id = Column(Integer, primary_key=True, nullable=False)
-    config_file_path = Column(Text, nullable=False)
-    market = Column(Text, nullable=False)
+    config_file_path = Column(String(750), nullable=False)
+    market = Column(String(750), nullable=False)
     timestamp = Column(BigInteger, nullable=False)
     saved_state = Column(JSON, nullable=False)
 

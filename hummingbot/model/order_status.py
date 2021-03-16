@@ -9,7 +9,8 @@ from sqlalchemy import (
     Integer,
     BigInteger,
     ForeignKey,
-    Index
+    Index,
+    String
 )
 from sqlalchemy.orm import relationship
 
@@ -23,9 +24,9 @@ class OrderStatus(HummingbotBase):
                       )
 
     id = Column(Integer, primary_key=True, nullable=False)
-    order_id = Column(Text, ForeignKey("Order.id"), nullable=False)
+    order_id = Column(String(750), ForeignKey("Order.id"), nullable=False)
     timestamp = Column(BigInteger, nullable=False)
-    status = Column(Text, nullable=False)
+    status = Column(String(750), nullable=False)
     order = relationship("Order", back_populates="status")
 
     def __repr__(self) -> str:

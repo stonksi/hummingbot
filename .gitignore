@@ -67,3 +67,4 @@ debug.log
 /certs
 *.pem
 gateway.env
+/.vs
