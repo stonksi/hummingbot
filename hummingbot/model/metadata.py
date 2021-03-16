@@ -3,6 +3,7 @@
 from sqlalchemy import (
     Column,
     Text,
+    String
 )
 
 from . import HummingbotBase
@@ -11,7 +12,7 @@ from . import HummingbotBase
 class Metadata(HummingbotBase):
     __tablename__ = "Metadata"
 
-    key = Column(Text(999), primary_key=True, nullable=False)
+    key = Column(String(1000), primary_key=True, nullable=False)
     value = Column(Text, nullable=False)
 
     def __repr__(self) -> str:
