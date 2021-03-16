@@ -10,7 +10,8 @@ from sqlalchemy import (
     Index,
     BigInteger,
     Integer,
-    Float
+    Float,
+    String
 )
 from sqlalchemy.orm import relationship
 
@@ -28,21 +29,21 @@ class Order(HummingbotBase):
                       Index("o_market_quote_asset_timestamp_index",
                             "market", "quote_asset", "creation_timestamp"))
 
-    id = Column(Text, primary_key=True, nullable=False)
-    config_file_path = Column(Text, nullable=False)
-    strategy = Column(Text, nullable=False)
-    market = Column(Text, nullable=False)
-    symbol = Column(Text, nullable=False)
-    base_asset = Column(Text, nullable=False)
-    quote_asset = Column(Text, nullable=False)
+    id = Column(String(750), primary_key=True, nullable=False)
+    config_file_path = Column(String(750), nullable=False)
+    strategy = Column(String(750), nullable=False)
+    market = Column(String(750), nullable=False)
+    symbol = Column(String(750), nullable=False)
+    base_asset = Column(String(750), nullable=False)
+    quote_asset = Column(String(750), nullable=False)
     creation_timestamp = Column(BigInteger, nullable=False)
-    order_type = Column(Text, nullable=False)
+    order_type = Column(String(750), nullable=False)
     amount = Column(Float, nullable=False)
     leverage = Column(Integer, nullable=False, default=1)
     price = Column(Float, nullable=False)
-    last_status = Column(Text, nullable=False)
+    last_status = Column(String(750), nullable=False)
     last_update_timestamp = Column(BigInteger, nullable=False)
-    exchange_order_id = Column(Text, nullable=True)
+    exchange_order_id = Column(String(750), nullable=True)
     position = Column(Text, nullable=True)
     status = relationship("OrderStatus", back_populates="order")
     trade_fills = relationship("TradeFill", back_populates="order")
