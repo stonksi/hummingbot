@@ -28,7 +28,7 @@ class Order(HummingbotBase):
                       Index("o_market_quote_asset_timestamp_index",
                             "market", "quote_asset", "creation_timestamp"))
 
-    id = Column(Text(1000), primary_key=True, nullable=False)
+    id = Column(Text, length=1000, primary_key=True, nullable=False)
     config_file_path = Column(Text, nullable=False)
     strategy = Column(Text, nullable=False)
     market = Column(Text, nullable=False)
