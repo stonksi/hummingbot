@@ -681,6 +681,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
                 if not self._take_if_crossed:
                     self.c_filter_out_takers(proposal)
+            self.c_cancel_active_orders(proposal)
             self.c_cancel_hanging_orders()
             self.c_cancel_orders_below_min_spread()
             refresh_proposal = self.c_aged_order_refresh()
@@ -689,7 +690,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_execute_orders_proposal(refresh_proposal)
             if self.c_to_create_orders(proposal):
                 self.c_execute_orders_proposal(proposal)
-            self.c_cancel_active_orders(proposal)
         finally:
             self._last_timestamp = timestamp
 
