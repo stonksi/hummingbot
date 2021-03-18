@@ -180,7 +180,7 @@ class OrderBookTracker(ABC):
             self._tracking_tasks[trading_pair] = safe_ensure_future(self._track_single_book(trading_pair))
             self.logger().info(f"Initialized order book for {trading_pair}. "
                                f"{index + 1}/{len(self._trading_pairs)} completed.")
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
         self._order_books_initialized.set()
 
     async def _order_book_diff_router(self):
