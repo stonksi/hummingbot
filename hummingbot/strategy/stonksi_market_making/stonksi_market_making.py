@@ -51,6 +51,8 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                  #volatility_to_spread_multiplier: Decimal = Decimal("1"),
                  max_spread: Decimal = Decimal("-1"),
                  max_order_age: float = 60. * 60.,
+                 order_optimization_enabled: bool = False,
+                 order_optimization_depth_pct: Decimal = Decimal("0"),
                  status_report_interval: float = 900,
                  hb_app_notification: bool = False):
         super().__init__()
@@ -69,6 +71,8 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         #self._volatility_to_spread_multiplier = volatility_to_spread_multiplier
         self._max_spread = max_spread
         self._max_order_age = max_order_age
+        self._order_optimization_enabled = order_optimization_enabled
+        self._order_optimization_depth_pct = order_optimization_depth_pct
         self._ev_loop = asyncio.get_event_loop()
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
@@ -108,6 +112,8 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         #self.update_volatility()
         proposals = self.create_base_proposals()
         self._token_balances = self.adjusted_available_balances()
+        if self._order_optimization_enabled:
+            self.apply_order_optimization(proposals)
         if self._inventory_skew_enabled:
             self.apply_inventory_skew(proposals)
         self.apply_budget_constraint(proposals)
@@ -263,6 +269,45 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             sell_size = self.base_order_size(market, sell_price)
             proposals.append(Proposal(market, PriceSize(buy_price, buy_size), PriceSize(sell_price, sell_size)))
         return proposals
+
+    def apply_order_optimization(self, proposals: List[Proposal]):
+        for proposal in proposals:       
+            market_info = self._market_infos[proposal.market]
+            mid_price = market_info.get_mid_price()
+            depth_amount = self.base_order_size(proposal.market, self._order_amount) * self._order_optimization_depth_pct
+            own_buy_qty = s_decimal_zero
+            own_sell_qty = s_decimal_zero
+
+            for order in self.active_orders:
+                if order.trading_pair == proposal.market:
+                    if order.is_buy:
+                        own_buy_size = order.quantity
+                    else:
+                        own_sell_size = order.quantity
+            
+            # Get the top BID price in the market using order_optimization_depth and your BUY order volume
+            top_bid_price = market_info.get_price_for_volume(False, depth_amount + own_buy_size).result_price
+            price_quantum = market_info.market.c_get_order_price_quantum(proposal.market, top_bid_price)
+            # Get the price above the top bid
+            price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
+            # If the price_above_bid is lower than the price suggested by the top pricing proposal,
+            # lower the price and from there apply the order_level_spread to each order in the next levels
+            lower_buy_price = min(proposal.buy.price, price_above_bid)
+            if self._max_spread > s_decimal_zero:
+                lower_buy_price = min(lower_buy_price, mid_price * (Decimal("1") - self._max_spread))
+            proposal.buy.price = market_info.market.c_quantize_order_price(proposal.market, lower_buy_price)
+        
+            # Get the top ASK price in the market using order_optimization_depth and your SELL order volume
+            top_ask_price = market_info.get_price_for_volume(True, depth_amount + own_sell_size).result_price
+            price_quantum = market_info.market.c_get_order_price_quantum(proposal.market, top_ask_price)
+            # Get the price below the top ask
+            price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
+            # If the price_below_ask is higher than the price suggested by the pricing proposal,
+            # increase your price and from there apply the order_level_spread to each order in the next levels
+            higher_sell_price = max(proposal.sell.price, price_below_ask)
+            if self._max_spread > s_decimal_zero:
+                higher_sell_price = min(higher_sell_price, mid_price * (Decimal("1") + self._max_spread))
+            proposal.sell.price = market_info.market.c_quantize_order_price(proposal.market, higher_sell_price)
 
     def total_port_value_in_token(self) -> Decimal:
         all_bals = self.adjusted_available_balances()

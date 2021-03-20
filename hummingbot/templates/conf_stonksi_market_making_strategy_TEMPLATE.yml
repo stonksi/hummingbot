@@ -54,3 +54,9 @@ max_spread: null
 
 # The maximum life time of your orders in seconds
 max_order_age: null
+
+# Whether to enable order optimization mode (true/false).
+order_optimization_enabled: null
+
+# The depth in percent of order amount to be used for finding top ask/bid (for order optimization mode).
+order_optimization_depth_pct: null

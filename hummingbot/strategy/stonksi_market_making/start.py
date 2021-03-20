@@ -24,6 +24,8 @@ def start(self):
     #volatility_to_spread_multiplier = c_map.get("volatility_to_spread_multiplier").value
     max_spread = c_map.get("max_spread").value / Decimal("100")
     max_order_age = c_map.get("max_order_age").value
+    order_optimization_enabled = c_map.get("order_optimization_enabled").value
+    order_optimization_depth_pct = c_map.get("order_optimization_depth_pct").value / Decimal("100")
 
     self._initialize_markets([(exchange, markets)])
     exchange = self.markets[exchange]
@@ -47,5 +49,7 @@ def start(self):
         #volatility_to_spread_multiplier=volatility_to_spread_multiplier,
         max_spread=max_spread,
         max_order_age=max_order_age,
+        order_optimization_enabled=order_optimization_enabled,
+        order_optimization_depth_pct=order_optimization_depth_pct,
         hb_app_notification=True
     )

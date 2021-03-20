@@ -131,4 +131,19 @@ stonksi_market_making_config_map = {
                   type_str="float",
                   validator=lambda v: validate_decimal(v, min_value=0, inclusive=False),
                   default=60. * 60.),
+    "order_optimization_enabled":
+        ConfigVar(key="order_optimization_enabled",
+                  prompt="Do you want to enable best bid ask jumping? (Yes/No) >>> ",
+                  type_str="bool",
+                  default=False,
+                  validator=validate_bool),
+    "order_optimization_depth_pct":
+        ConfigVar(key="order_optimization_depth_pct",
+                  prompt="How deep do you want to go into the order book for calculating "
+                         "the top ask/bid, ignoring dust orders on the top "
+                         "(expressed in percentage of order amount, 0 = disabled)? >>> ",
+                  required_if=lambda: stonksi_market_making_config_map.get("order_optimization_enabled").value,
+                  type_str="decimal",
+                  validator=lambda v: validate_decimal(v, 0, 100),
+                  default=0),
 }
