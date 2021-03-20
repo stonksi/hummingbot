@@ -77,7 +77,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._token_balances = {}
         self._sell_budgets = {}
         self._buy_budgets = {}
-        self._mid_prices = {market: [] for market in market_infos}
+        #self._mid_prices = {market: [] for market in market_infos}
         #self._volatility = {market: s_decimal_nan for market in self._market_infos}
         self._last_vol_reported = 0.
         self._hb_app_notification = hb_app_notification
@@ -104,7 +104,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.logger().info(f"{self._exchange.name} is ready. Trading started.")
                 self.create_budget_allocation()
 
-        self.update_mid_prices()
+        #self.update_mid_prices()
         #self.update_volatility()
         proposals = self.create_base_proposals()
         self._token_balances = self.adjusted_available_balances()
@@ -462,13 +462,13 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self._sell_budgets[market_info.trading_pair] -= event.amount
                 self._buy_budgets[market_info.trading_pair] += (event.amount * event.price)
 
-    def update_mid_prices(self):
-        for market in self._market_infos:
-            mid_price = self._market_infos[market].get_mid_price()
-            self._mid_prices[market].append(mid_price)
-            # To avoid memory leak, we store only the last part of the list needed for volatility calculation
-            max_len = 10 #self._volatility_interval * self._avg_volatility_period
-            self._mid_prices[market] = self._mid_prices[market][-1 * max_len:]
+    #def update_mid_prices(self):
+    #    for market in self._market_infos:
+    #        mid_price = self._market_infos[market].get_mid_price()
+    #        self._mid_prices[market].append(mid_price)
+    #        # To avoid memory leak, we store only the last part of the list needed for volatility calculation
+    #        max_len = self._volatility_interval * self._avg_volatility_period
+    #        self._mid_prices[market] = self._mid_prices[market][-1 * max_len:]
 
     #def update_volatility(self):
     #    self._volatility = {market: s_decimal_nan for market in self._market_infos}
