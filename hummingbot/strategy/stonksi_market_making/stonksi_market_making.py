@@ -287,7 +287,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             
             # Get the top BID price in the market using order_optimization_depth and your BUY order volume
             top_bid_price = market_info.get_price_for_volume(False, depth_amount + own_buy_qty).result_price
-            price_quantum = market_info.market.c_get_order_price_quantum(proposal.market, top_bid_price)
+            price_quantum = self._exchange.quantize_order_price(proposal.market, top_bid_price)
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
@@ -295,11 +295,11 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             lower_buy_price = min(proposal.buy.price, price_above_bid)
             if self._max_spread > s_decimal_zero:
                 lower_buy_price = min(lower_buy_price, mid_price * (Decimal("1") - self._max_spread))
-            proposal.buy.price = market_info.market.c_quantize_order_price(proposal.market, lower_buy_price)
+            proposal.buy.price = self._exchange.quantize_order_price(proposal.market, lower_buy_price)
         
             # Get the top ASK price in the market using order_optimization_depth and your SELL order volume
             top_ask_price = market_info.get_price_for_volume(True, depth_amount + own_sell_qty).result_price
-            price_quantum = market_info.market.c_get_order_price_quantum(proposal.market, top_ask_price)
+            price_quantum = self._exchange.quantize_order_price(proposal.market, top_ask_price)
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
@@ -307,7 +307,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             higher_sell_price = max(proposal.sell.price, price_below_ask)
             if self._max_spread > s_decimal_zero:
                 higher_sell_price = min(higher_sell_price, mid_price * (Decimal("1") + self._max_spread))
-            proposal.sell.price = market_info.market.c_quantize_order_price(proposal.market, higher_sell_price)
+            proposal.sell.price = self._exchange.quantize_order_price(proposal.market, higher_sell_price)
 
     def total_port_value_in_token(self) -> Decimal:
         all_bals = self.adjusted_available_balances()
