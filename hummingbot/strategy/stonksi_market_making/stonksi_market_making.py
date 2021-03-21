@@ -293,7 +293,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
-            notify_hb_app(f"Optimize Buy (min): Prop={proposal.buy.price}, Opt={price_above_bid}")
+            self.notify_hb_app(f"Optimize Buy (min): Prop={proposal.buy.price}, Opt={price_above_bid}")
             lower_buy_price = min(proposal.buy.price, price_above_bid)
             if self._max_spread > s_decimal_zero:
                 lower_buy_price = min(lower_buy_price, mid_price * (Decimal("1") - self._max_spread))
@@ -306,7 +306,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
-            notify_hb_app(f"Optimize Sell (max): Prop={proposal.sell.price}, Opt={price_below_ask}")
+            self.notify_hb_app(f"Optimize Sell (max): Prop={proposal.sell.price}, Opt={price_below_ask}")
             higher_sell_price = max(proposal.sell.price, price_below_ask)
             if self._max_spread > s_decimal_zero:
                 higher_sell_price = min(higher_sell_price, mid_price * (Decimal("1") + self._max_spread))
