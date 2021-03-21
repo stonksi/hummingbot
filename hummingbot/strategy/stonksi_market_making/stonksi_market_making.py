@@ -275,8 +275,8 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         for proposal in proposals:       
             market_info = self._market_infos[proposal.market]
             mid_price = market_info.get_mid_price()
-            depth_amount = self.base_order_size(proposal.market, self._order_amount) * self._order_optimization_depth_pct
-            self.notify_hb_app(f"depth_amount={depth_amount}, base_order_size={self.base_order_size(proposal.market, self._order_amount)}, order_opt_depth_pct={self._order_optimization_depth_pct}")
+            depth_amount = self.base_order_size(proposal.market, mid_price) * self._order_optimization_depth_pct
+            self.notify_hb_app(f"depth_amount={depth_amount}, base_order_size={self.base_order_size(proposal.market, mid_price)}, order_opt_depth_pct={self._order_optimization_depth_pct}")
             own_buy_qty = s_decimal_zero
             own_sell_qty = s_decimal_zero
 
