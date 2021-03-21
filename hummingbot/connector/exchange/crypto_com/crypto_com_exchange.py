@@ -337,7 +337,7 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            await self.cancel_all(3) # Cancel all active to avoid hang-bug
+            #await self.cancel_all(3) # Cancel all active to avoid hang-bug
             raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
         if response.status != 200:
             raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
@@ -454,8 +454,8 @@ class CryptoComExchange(ExchangeBase):
             exchange_order_id = str(order_result["result"]["order_id"])
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is not None:
-                self.logger().info(f"Created {order_type.name} {trade_type.name} order {order_id} for "
-                                   f"{amount} {trading_pair}.")
+                #self.logger().info(f"Created {order_type.name} {trade_type.name} order {order_id} for "
+                #                   f"{amount} {trading_pair}.")
                 tracked_order.update_exchange_order_id(exchange_order_id)
 
             event_tag = MarketEvent.BuyOrderCreated if trade_type is TradeType.BUY else MarketEvent.SellOrderCreated
@@ -537,7 +537,7 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            await self.cancel_all(3) # Cancel all active to avoid hang-bug
+            #await self.cancel_all(3) # Cancel all active to avoid hang-bug
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
@@ -630,7 +630,7 @@ class CryptoComExchange(ExchangeBase):
         # Update order execution status
         tracked_order.last_state = order_msg["status"]
         if tracked_order.is_cancelled:
-            self.logger().info(f"Successfully cancelled order {client_order_id}.")
+            #self.logger().info(f"Successfully cancelled order {client_order_id}.")
             self.trigger_event(MarketEvent.OrderCancelled,
                                OrderCancelledEvent(
                                    self.current_timestamp,
