@@ -289,7 +289,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             
             # Get the top BID price in the market using order_optimization_depth and your BUY order volume
             top_bid_price = market_info.get_price_for_volume(False, depth_amount + own_buy_qty).result_price
-            price_quantum = self._exchange.quantize_order_price(proposal.market, top_bid_price)
+            price_quantum = self._exchange.get_order_price_quantum(proposal.market, top_bid_price)
             self.notify_hb_app(f"top_bid_price={top_bid_price}, own_buy_qty={own_buy_qty}, price_quantum={price_quantum}")
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
@@ -303,7 +303,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         
             # Get the top ASK price in the market using order_optimization_depth and your SELL order volume
             top_ask_price = market_info.get_price_for_volume(True, depth_amount + own_sell_qty).result_price
-            price_quantum = self._exchange.quantize_order_price(proposal.market, top_ask_price)
+            price_quantum = self._exchange.get_order_price_quantum(proposal.market, top_ask_price)
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
