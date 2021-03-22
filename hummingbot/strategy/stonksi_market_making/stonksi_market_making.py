@@ -54,7 +54,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                  max_order_age: float = 60. * 60.,
                  order_optimization_enabled: bool = False,
                  order_optimization_depth_pct: Decimal = Decimal("0"),
-                 order_optimization_failsafe_enabled: bool = False,
+                 order_optimization_failsafe_enabled: bool = True,
                  status_report_interval: float = 900,
                  hb_app_notification: bool = False):
         super().__init__()

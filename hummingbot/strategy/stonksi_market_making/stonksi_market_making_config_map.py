@@ -151,6 +151,6 @@ stonksi_market_making_config_map = {
                   prompt="Do you want to enable order optimization fail safe? (Yes/No) >>> ",
                   required_if=lambda: stonksi_market_making_config_map.get("order_optimization_enabled").value,
                   type_str="bool",
-                  default=False,
+                  default=True,
                   validator=validate_bool),
 }
