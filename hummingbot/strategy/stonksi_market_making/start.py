@@ -26,6 +26,7 @@ def start(self):
     max_order_age = c_map.get("max_order_age").value
     order_optimization_enabled = c_map.get("order_optimization_enabled").value
     order_optimization_depth_pct = c_map.get("order_optimization_depth_pct").value / Decimal("100")
+    order_optimization_failsafe_enabled = c_map.get("order_optimization_failsafe_enabled").value
 
     self._initialize_markets([(exchange, markets)])
     exchange = self.markets[exchange]
@@ -51,5 +52,6 @@ def start(self):
         max_order_age=max_order_age,
         order_optimization_enabled=order_optimization_enabled,
         order_optimization_depth_pct=order_optimization_depth_pct,
+        order_optimization_failsafe_enabled=order_optimization_failsafe_enabled,
         hb_app_notification=True
     )

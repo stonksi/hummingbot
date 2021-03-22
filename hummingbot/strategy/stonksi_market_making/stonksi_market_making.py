@@ -54,6 +54,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                  max_order_age: float = 60. * 60.,
                  order_optimization_enabled: bool = False,
                  order_optimization_depth_pct: Decimal = Decimal("0"),
+                 order_optimization_failsafe_enabled: bool = True,
                  status_report_interval: float = 900,
                  hb_app_notification: bool = False):
         super().__init__()
@@ -74,6 +75,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._max_order_age = max_order_age
         self._order_optimization_enabled = order_optimization_enabled
         self._order_optimization_depth_pct = order_optimization_depth_pct
+        self._order_optimization_failsafe_enabled = order_optimization_failsafe_enabled
         self._ev_loop = asyncio.get_event_loop()
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
@@ -276,7 +278,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             market_info = self._market_infos[proposal.market]
             mid_price = market_info.get_mid_price()
             depth_amount = self.base_order_size(proposal.market, mid_price) * self._order_optimization_depth_pct
-            #self.notify_hb_app(f"depth_amount={depth_amount}, base_order_size={self.base_order_size(proposal.market, mid_price)}, order_opt_depth_pct={self._order_optimization_depth_pct}")
             own_buy_qty = s_decimal_zero
             own_sell_qty = s_decimal_zero
             for order in self.active_orders:
@@ -289,13 +290,17 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             # Get the top BID price in the market using order_optimization_depth and your BUY order volume
             top_bid_price = market_info.get_price_for_volume(False, depth_amount + own_buy_qty).result_price
             price_quantum = self._exchange.get_order_price_quantum(proposal.market, top_bid_price)
-            #self.notify_hb_app(f"top_bid_price={top_bid_price}, own_buy_qty={own_buy_qty}, price_quantum={price_quantum}")
-            # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
-            #self.notify_hb_app(f"Optimize Buy (min): Prop={proposal.buy.price}, Opt={price_above_bid}")
-            lower_buy_price = min(proposal.buy.price, price_above_bid)
+            lower_buy_price = proposal.buy.price
+            if price_above_bid < lower_buy_price:
+                lower_buy_price = price_above_bid
+            elif self._order_optimization_failsafe_enabled:
+                next_price = market_info.get_next_price(False, lower_buy_price).result_price
+                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
+
             if self._max_spread > s_decimal_zero:
                 lower_buy_price = min(lower_buy_price, mid_price * (Decimal("1") - self._max_spread))
             proposal.buy.price = self._exchange.quantize_order_price(proposal.market, lower_buy_price)
@@ -303,12 +308,17 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             # Get the top ASK price in the market using order_optimization_depth and your SELL order volume
             top_ask_price = market_info.get_price_for_volume(True, depth_amount + own_sell_qty).result_price
             price_quantum = self._exchange.get_order_price_quantum(proposal.market, top_ask_price)
-            # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
-            #self.notify_hb_app(f"Optimize Sell (max): Prop={proposal.sell.price}, Opt={price_below_ask}")
-            higher_sell_price = max(proposal.sell.price, price_below_ask)
+            higher_sell_price = proposal.sell.price
+            if price_below_ask > higher_sell_price:
+                higher_sell_price = price_below_ask
+            elif self._order_optimization_failsafe_enabled:
+                next_price = market_info.get_next_price(True, higher_sell_price).result_price
+                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                higher_sell_price = (floor(next_price / next_price_quantum) - 1) * next_price_quantum
+
             if self._max_spread > s_decimal_zero:
                 higher_sell_price = min(higher_sell_price, mid_price * (Decimal("1") + self._max_spread))
             proposal.sell.price = self._exchange.quantize_order_price(proposal.market, higher_sell_price)

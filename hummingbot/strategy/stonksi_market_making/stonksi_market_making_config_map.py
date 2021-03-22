@@ -146,4 +146,11 @@ stonksi_market_making_config_map = {
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, 0, 100),
                   default=0),
+    "order_optimization_failsafe_enabled":
+        ConfigVar(key="order_optimization_failsafe_enabled",
+                  prompt="Do you want to enable order optimization fail safe? (Yes/No) >>> ",
+                  required_if=lambda: stonksi_market_making_config_map.get("order_optimization_enabled").value,
+                  type_str="bool",
+                  default=True,
+                  validator=validate_bool),
 }
