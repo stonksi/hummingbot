@@ -12,6 +12,7 @@ import json
 import aiohttp
 import math
 import time
+import random
 
 from hummingbot.core.network_iterator import NetworkStatus
 from hummingbot.logger import HummingbotLogger
@@ -537,13 +538,14 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            #await self.cancel_all(3) # Cancel all active to avoid hang-bug
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
                                 f"Check API key and network connection."
             )
+            await asyncio.sleep(random.uniform(0.1, 0.5))
+            await self.cancel_all(3) # Cancel all active orders to avoid hang-bug
 
     async def _status_polling_loop(self):
         """
@@ -575,8 +577,9 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
+        await asyncio.sleep(random.uniform(0.1, 1.0))
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
             self._account_available_balances[asset_name] = Decimal(str(account["available"]))
