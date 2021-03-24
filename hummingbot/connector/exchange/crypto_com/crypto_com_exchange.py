@@ -514,7 +514,7 @@ class CryptoComExchange(ExchangeBase):
         if order_id in self._in_flight_orders:
             del self._in_flight_orders[order_id]
 
-    async def _execute_cancel(self, trading_pair: str, order_id: str) -> str:
+    async def _execute_cancel(self, trading_pair: str, order_id: str, second_attempt: bool = False) -> str:
         """
         Executes order cancellation process by first calling cancel-order API. The API result doesn't confirm whether
         the cancellation is successful, it simply states it receives the request.
@@ -540,14 +540,16 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            self.logger().network(
-                f"Failed to cancel order {order_id}: {str(e)}",
-                exc_info=True,
-                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-                                f"Check API key and network connection."
-            )
-            #await asyncio.sleep(random.uniform(0.1, 0.5))
-            #await self.cancel_all(3) # Cancel all active orders to avoid hang-bug
+            try:
+                await self._execute_cancel(traiding_pair, order_id, True)
+            except Exception as e:
+                self.logger().network(
+                    f"Failed to cancel order {order_id}: {str(e)}",
+                    exc_info=True,
+                    app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                                    f"Check API key and network connection."
+                )
+                self.stop_tracking_order(order_id)
 
     async def _status_polling_loop(self):
         """
