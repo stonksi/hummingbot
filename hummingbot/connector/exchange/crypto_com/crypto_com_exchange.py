@@ -317,6 +317,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
+        await asyncio.sleep(random.uniform(0.0, 0.2))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -578,7 +579,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        await asyncio.sleep(random.uniform(0.1, 0.4))
+        await asyncio.sleep(1.0)
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
         #await asyncio.sleep(1.0)
         for account in account_info["result"]["accounts"]:
