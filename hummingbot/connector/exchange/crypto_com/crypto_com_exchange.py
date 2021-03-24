@@ -579,7 +579,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
         #await asyncio.sleep(1.0)
         for account in account_info["result"]["accounts"]:
