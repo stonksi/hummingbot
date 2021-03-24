@@ -181,7 +181,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
 
     def market_status_df(self) -> pd.DataFrame:
         data = []
-        columns = ["Market", "Mid price", "Best bid", "%", "Best ask", "%"]#, "Volatility"]
+        columns = ["Market", "Mid price", "Best bid", "Bid %", "Best ask", "Ask %"]#, "Volatility"]
         for market, market_info in self._market_infos.items():
             mid_price = market_info.get_mid_price()
             best_bid = self._exchange.get_price(market, False)
@@ -193,7 +193,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 float(mid_price),
                 float(best_bid),
                 f"{best_bid_pct:.3%}",
-                float(best_ask)                
+                float(best_ask),                
                 f"{best_ask_pct:.3%}"
                 #"" if self._volatility[market].is_nan() else f"{self._volatility[market]:.2%}",
             ])
