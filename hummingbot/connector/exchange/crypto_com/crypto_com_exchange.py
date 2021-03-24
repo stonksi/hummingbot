@@ -540,9 +540,9 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            try:
+            if not second_attempt:
                 await self._execute_cancel(traiding_pair, order_id, True)
-            except Exception as e:
+            else:
                 self.logger().network(
                     f"Failed to cancel order {order_id}: {str(e)}",
                     exc_info=True,
