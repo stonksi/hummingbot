@@ -173,7 +173,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 float(total_bal_in_token),
                 float(base_bal),
                 float(quote_bal),
-                f"{base_pct:.0%} / {quote_pct:.0%}"
+                f"{base_pct:.2%} / {quote_pct:.2%}"
             ])
         df = pd.DataFrame(data=data, columns=columns).replace(np.nan, '', regex=True)
         df.sort_values(by=["Market"], inplace=True)
