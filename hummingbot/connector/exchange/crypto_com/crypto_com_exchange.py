@@ -93,7 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
-        self._time_until_update: float = 1.0
+        self._time_until_update: float = 0.0
 
     @property
     def name(self) -> str:
@@ -186,7 +186,8 @@ class CryptoComExchange(ExchangeBase):
         It starts tracking order book, polling trading rules,
         updating statuses and tracking user data.
         """
-        await asyncio.sleep(2.0)
+        await safe_gather(self._update_balances())
+        await asyncio.sleep(1.0)
         self._order_book_tracker.start()   
         await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
