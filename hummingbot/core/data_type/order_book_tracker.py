@@ -86,7 +86,7 @@ class OrderBookTracker(ABC):
 
     def start(self):
         self.stop()
-        asyncio.sleep(1.0)
+        time.sleep(1.0)
         self._init_order_books_task = safe_ensure_future(
             self._init_order_books()
         )
