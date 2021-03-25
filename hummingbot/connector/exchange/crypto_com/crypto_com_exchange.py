@@ -93,7 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
-        self._time_until_update: float = random.uniform(1.0, 3.0)
+        self._time_until_update: float = 1.0
 
     @property
     def name(self) -> str:
@@ -186,9 +186,7 @@ class CryptoComExchange(ExchangeBase):
         It starts tracking order book, polling trading rules,
         updating statuses and tracking user data.
         """
-        await asyncio.sleep(1.0)
-        await safe_gather(self._update_balances())
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
         self._order_book_tracker.start()   
         await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
@@ -764,7 +762,7 @@ class CryptoComExchange(ExchangeBase):
         Is called automatically by the clock for each clock's tick (1 second by default).
         It checks if status polling task is due for execution.
         """
-        #time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
+        time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         now = time.time()
         poll_interval = (self.SHORT_POLL_INTERVAL
                          if now - self._user_stream_tracker.last_recv_time > 60.0
@@ -772,8 +770,8 @@ class CryptoComExchange(ExchangeBase):
         last_tick = int(self._last_timestamp / poll_interval)
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick and not self._poll_notifier.is_set():
-            if self._time_until_update > 1:
-                self._time_until_update = self.__time_until_update - 1.0
+            if self._time_until_update >= 1.0:
+                self._time_until_update -= 1.0
             else:
                 self._poll_notifier.set()
                 self._time_until_update = random.uniform(5.0, 20.0)
