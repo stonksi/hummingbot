@@ -345,7 +345,7 @@ class CryptoComExchange(ExchangeBase):
                 await asyncio.sleep(random.choice([0.1, 0.2]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             elif attempt < 4:
-                await asyncio.sleep(random.choice([0.4, 0.8, 1.2]))
+                await asyncio.sleep(random.choice([0.3, 0.6, 0.9]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
                 raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
@@ -547,14 +547,13 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
+            self.stop_tracking_order(order_id)
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-                                f"Check API key and network connection."
-                                f"Cancelling all orders for safety."
+                                f"Stopped tracking order manually."
             )
-            await self.cancel_all(5)
 
     async def _status_polling_loop(self):
         """
@@ -586,7 +585,6 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        #await asyncio.sleep(random.choice([1.0, 2.0]))
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
@@ -757,7 +755,7 @@ class CryptoComExchange(ExchangeBase):
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick:
             if not self._poll_notifier.is_set():
-                time.sleep(random.choice([0.0, 0.1, 0.2, 0.3, 0.4, 0.5]))
+                time.sleep(random.choice([0.0, 0.1, 0.2, 0.3, 0.4]))
                 self._poll_notifier.set()
         self._last_timestamp = timestamp
 
