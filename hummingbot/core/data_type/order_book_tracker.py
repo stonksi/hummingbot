@@ -86,6 +86,7 @@ class OrderBookTracker(ABC):
 
     def start(self):
         self.stop()
+        asyncio.sleep(1.0)
         self._init_order_books_task = safe_ensure_future(
             self._init_order_books()
         )
@@ -174,13 +175,14 @@ class OrderBookTracker(ABC):
         """
         Initialize order books
         """
+        await asyncio.sleep(1)
         for index, trading_pair in enumerate(self._trading_pairs):
             self._order_books[trading_pair] = await self._data_source.get_new_order_book(trading_pair)
             self._tracking_message_queues[trading_pair] = asyncio.Queue()
             self._tracking_tasks[trading_pair] = safe_ensure_future(self._track_single_book(trading_pair))
             self.logger().info(f"Initialized order book for {trading_pair}. "
                                f"{index + 1}/{len(self._trading_pairs)} completed.")
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
         self._order_books_initialized.set()
 
     async def _order_book_diff_router(self):

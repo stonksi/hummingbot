@@ -308,7 +308,8 @@ class CryptoComExchange(ExchangeBase):
                            method: str,
                            path_url: str,
                            params: Dict[str, Any] = {},
-                           is_auth_required: bool = False) -> Dict[str, Any]:
+                           is_auth_required: bool = False,
+                           attempt: int = 1) -> Dict[str, Any]:
         """
         Sends an aiohttp request and waits for a response.
         :param method: The HTTP method, e.g. get or post
@@ -317,7 +318,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
-        await asyncio.sleep(random.uniform(0.01, 0.19))
+        await asyncio.sleep(random.choice([0.0, 0.1]))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -340,9 +341,14 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            print(f"REQUEST: {method} {path_url} {params}")
-            print(f"RESPONSE: {parsed_response}")
-            raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
+            if attempt == 1:
+                await asyncio.sleep(random.choice([0.1, 0.2]))
+                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            elif attempt == 2:
+                await asyncio.sleep(1.0)
+                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            else:
+                raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
         if response.status != 200:
             raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
                           f"Message: {parsed_response}")
@@ -542,7 +548,7 @@ class CryptoComExchange(ExchangeBase):
             raise
         except Exception as e:
             if attempt < 3:
-                await asyncio.sleep(random.uniform(0.1, 0.3))
+                await asyncio.sleep(random.choice([0.1, 0.2]))
                 await self._execute_cancel(trading_pair, order_id, attempt + 1)
             else:
                 self.logger().network(
@@ -584,9 +590,8 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        #await asyncio.sleep(0.5)
+        await asyncio.sleep(random.choice([1.0, 2.0]))
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
-        #await asyncio.sleep(1.0)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
             self._account_available_balances[asset_name] = Decimal(str(account["available"]))
