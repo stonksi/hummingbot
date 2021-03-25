@@ -552,7 +552,7 @@ class CryptoComExchange(ExchangeBase):
                                     f"Check API key and network connection."
                                     f"Cancelling all orders for safety."
                 )
-                self.cancel_all(3)
+                await self.cancel_all(3)
 
     async def _status_polling_loop(self):
         """
