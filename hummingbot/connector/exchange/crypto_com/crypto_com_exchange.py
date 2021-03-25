@@ -318,7 +318,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
-        await asyncio.sleep(random.choice([0.0, 0.1]))
+        await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -344,8 +344,8 @@ class CryptoComExchange(ExchangeBase):
             if attempt == 1:
                 await asyncio.sleep(random.choice([0.1, 0.2]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
-            elif attempt == 2:
-                await asyncio.sleep(1.0)
+            elif attempt < 4:
+                await asyncio.sleep(random.choice([0.4, 0.8, 1.2]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
                 raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
@@ -521,7 +521,7 @@ class CryptoComExchange(ExchangeBase):
         if order_id in self._in_flight_orders:
             del self._in_flight_orders[order_id]
 
-    async def _execute_cancel(self, trading_pair: str, order_id: str, attempt: int = 1) -> str:
+    async def _execute_cancel(self, trading_pair: str, order_id: str) -> str:
         """
         Executes order cancellation process by first calling cancel-order API. The API result doesn't confirm whether
         the cancellation is successful, it simply states it receives the request.
@@ -547,18 +547,14 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            if attempt < 3:
-                await asyncio.sleep(random.choice([0.1, 0.2]))
-                await self._execute_cancel(trading_pair, order_id, attempt + 1)
-            else:
-                self.logger().network(
-                    f"Failed to cancel order {order_id}: {str(e)}",
-                    exc_info=True,
-                    app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-                                    f"Check API key and network connection."
-                                    f"Cancelling all orders for safety."
-                )
-                await self.cancel_all(3)
+            self.logger().network(
+                f"Failed to cancel order {order_id}: {str(e)}",
+                exc_info=True,
+                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                                f"Check API key and network connection."
+                                f"Cancelling all orders for safety."
+            )
+            await self.cancel_all(5)
 
     async def _status_polling_loop(self):
         """
@@ -590,7 +586,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        await asyncio.sleep(random.choice([1.0, 2.0]))
+        await asyncio.sleep(random.choice([1.0, 1.5, 2.0]))
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
