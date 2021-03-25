@@ -344,14 +344,21 @@ class CryptoComExchange(ExchangeBase):
             if attempt == 1:
                 await asyncio.sleep(random.choice([0.1, 0.2]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
-            elif attempt < 4:
-                await asyncio.sleep(random.choice([0.3, 0.6, 0.9]))
+            elif attempt < 5:
+                await asyncio.sleep(random.choice([0.2, 0.4, 0.6]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
+                raise IOError(f"Error parsing data from {url} (after 4 attempts). Error: {str(e)}")
         if response.status != 200:
-            raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
-                          f"Message: {parsed_response}")
+            if attempt == 1:
+                await asyncio.sleep(random.choice([0.1, 0.2]))
+                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            elif attempt < 5:
+                await asyncio.sleep(random.choice([0.2, 0.4, 0.6]))
+                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            else:
+                raise IOError(f"Error fetching data from {url} (after 4 attempts). HTTP status is {response.status}. "
+                              f"Message: {parsed_response}")
         if parsed_response["code"] != 0:
             raise IOError(f"{url} API call failed, response: {parsed_response}")
         # print(f"REQUEST: {method} {path_url} {params}")
