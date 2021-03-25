@@ -93,7 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
-        self._time_until_update = random.uniform(1.0, 3.0)
+        self._time_until_update: float = random.uniform(1.0, 3.0)
 
     @property
     def name(self) -> str:
@@ -773,7 +773,7 @@ class CryptoComExchange(ExchangeBase):
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick and not self._poll_notifier.is_set():
             if self._time_until_update > 1:
-                self._time_until_update = _time_until_update - 1
+                self._time_until_update = self.__time_until_update - 1.0
             else:
                 self._poll_notifier.set()
                 self._time_until_update = random.uniform(5.0, 20.0)
