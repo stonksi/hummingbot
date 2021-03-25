@@ -109,8 +109,10 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 return
             else:
                 self.logger().info(f"{self._exchange.name} is ready. Trading started.")
+                time.sleep(1.0)
                 self.create_budget_allocation()
 
+        time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         #self.update_mid_prices()
         #self.update_volatility()
         proposals = self.create_base_proposals()

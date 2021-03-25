@@ -191,7 +191,7 @@ class CryptoComExchange(ExchangeBase):
             self._status_polling_task = safe_ensure_future(self._status_polling_loop())
             self._user_stream_tracker_task = safe_ensure_future(self._user_stream_tracker.start())
             self._user_stream_event_listener_task = safe_ensure_future(self._user_stream_event_listener())
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(3.0)
         self._order_book_tracker.start()    
 
     async def stop_network(self):
@@ -572,7 +572,6 @@ class CryptoComExchange(ExchangeBase):
             try:
                 self._poll_notifier = asyncio.Event()
                 await self._poll_notifier.wait()
-                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]))
                 await safe_gather(
                     self._update_balances(),
                     self._update_order_status(),
@@ -592,7 +591,7 @@ class CryptoComExchange(ExchangeBase):
         """
         Calls REST API to update total and available balances.
         """
-        await asyncio.sleep(random.choice([1.0, 2.0]))
+        await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
@@ -757,6 +756,7 @@ class CryptoComExchange(ExchangeBase):
         Is called automatically by the clock for each clock's tick (1 second by default).
         It checks if status polling task is due for execution.
         """
+        time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         now = time.time()
         poll_interval = (self.SHORT_POLL_INTERVAL
                          if now - self._user_stream_tracker.last_recv_time > 60.0
@@ -765,7 +765,6 @@ class CryptoComExchange(ExchangeBase):
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick:
             if not self._poll_notifier.is_set():
-                time.sleep(random.choice([0.0, 0.1, 0.2, 0.3, 0.4]))
                 self._poll_notifier.set()
         self._last_timestamp = timestamp
 
