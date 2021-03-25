@@ -186,13 +186,14 @@ class CryptoComExchange(ExchangeBase):
         updating statuses and tracking user data.
         """
         await asyncio.sleep(1.0)
+        self._update_balances(True)
+        await asyncio.sleep(3.0)
+        self._order_book_tracker.start()   
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
         if self._trading_required:
             self._status_polling_task = safe_ensure_future(self._status_polling_loop())
             self._user_stream_tracker_task = safe_ensure_future(self._user_stream_tracker.start())
             self._user_stream_event_listener_task = safe_ensure_future(self._user_stream_event_listener())
-        await asyncio.sleep(3.0)
-        self._order_book_tracker.start()    
 
     async def stop_network(self):
         """
@@ -587,11 +588,12 @@ class CryptoComExchange(ExchangeBase):
                                                       "Check API key and network connection.")
                 await asyncio.sleep(0.5)
 
-    async def _update_balances(self):
+    async def _update_balances(self, force_now: bool = False):
         """
         Calls REST API to update total and available balances.
         """
-        await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0]))
+        if not force_now:
+            await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
