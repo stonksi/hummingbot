@@ -590,6 +590,7 @@ class CryptoComExchange(ExchangeBase):
         """
         Calls REST API to update total and available balances.
         """
+        await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0, 4.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
