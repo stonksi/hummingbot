@@ -185,7 +185,7 @@ class CryptoComExchange(ExchangeBase):
         It starts tracking order book, polling trading rules,
         updating statuses and tracking user data.
         """
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
         self._order_book_tracker.start()
         await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
@@ -572,7 +572,7 @@ class CryptoComExchange(ExchangeBase):
             try:
                 self._poll_notifier = asyncio.Event()
                 await self._poll_notifier.wait()
-                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0]))
+                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]))
                 await safe_gather(
                     self._update_balances(),
                     self._update_order_status(),
