@@ -764,7 +764,6 @@ class CryptoComExchange(ExchangeBase):
         Is called automatically by the clock for each clock's tick (1 second by default).
         It checks if status polling task is due for execution.
         """
-        time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         now = time.time()
         poll_interval = (self.SHORT_POLL_INTERVAL
                          if now - self._user_stream_tracker.last_recv_time > 60.0

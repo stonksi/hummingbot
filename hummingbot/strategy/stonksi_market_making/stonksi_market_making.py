@@ -110,7 +110,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 return
             else:
                 self.logger().info(f"{self._exchange.name} is ready. Trading started.")
-                time.sleep(1.0)
                 self.create_budget_allocation()
 
         time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
@@ -344,7 +343,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._sell_budgets = {m: s_decimal_zero for m in self._market_infos}
         self._buy_budgets = {m: s_decimal_zero for m in self._market_infos}
         port_value = self.total_port_value_in_token()
-        market_portion = port_value #/ len(self._market_infos)
+        market_portion = port_value / len(self._market_infos)
         balances = self.adjusted_available_balances()
         for market, market_info in self._market_infos.items():
             base, quote = market.split("-")
