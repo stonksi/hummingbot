@@ -340,7 +340,8 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            #await self.cancel_all(3) # Cancel all active to avoid hang-bug
+            print(f"REQUEST: {method} {path_url} {params}")
+            print(f"RESPONSE: {parsed_response}")
             raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
         if response.status != 200:
             raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
@@ -541,6 +542,7 @@ class CryptoComExchange(ExchangeBase):
             raise
         except Exception as e:
             if attempt < 3:
+                await asyncio.sleep(random.uniform(0.1, 0.3))
                 await self._execute_cancel(trading_pair, order_id, attempt + 1)
             else:
                 self.logger().network(
@@ -548,8 +550,9 @@ class CryptoComExchange(ExchangeBase):
                     exc_info=True,
                     app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
                                     f"Check API key and network connection."
+                                    f"Cancelling all orders for safety."
                 )
-                self.stop_tracking_order(order_id)
+                self.cancel_all(3)
 
     async def _status_polling_loop(self):
         """
