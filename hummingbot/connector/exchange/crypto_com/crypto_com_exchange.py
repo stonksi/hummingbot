@@ -186,7 +186,7 @@ class CryptoComExchange(ExchangeBase):
         updating statuses and tracking user data.
         """
         await asyncio.sleep(1.0)
-        self._update_balances(True)
+        await safe_gather(self._update_balances(True))
         await asyncio.sleep(3.0)
         self._order_book_tracker.start()   
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
