@@ -185,8 +185,9 @@ class CryptoComExchange(ExchangeBase):
         It starts tracking order book, polling trading rules,
         updating statuses and tracking user data.
         """
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(1.0)
         self._order_book_tracker.start()
+        await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
         if self._trading_required:
             self._status_polling_task = safe_ensure_future(self._status_polling_loop())
@@ -571,6 +572,7 @@ class CryptoComExchange(ExchangeBase):
             try:
                 self._poll_notifier = asyncio.Event()
                 await self._poll_notifier.wait()
+                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5]))
                 await safe_gather(
                     self._update_balances(),
                     self._update_order_status(),
@@ -590,7 +592,6 @@ class CryptoComExchange(ExchangeBase):
         """
         Calls REST API to update total and available balances.
         """
-        await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0, 4.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
