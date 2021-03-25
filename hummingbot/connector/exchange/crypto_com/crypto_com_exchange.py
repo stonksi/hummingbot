@@ -563,6 +563,7 @@ class CryptoComExchange(ExchangeBase):
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
                                 f"Stopped tracking order manually."
             )
+            return order_id
 
     async def _status_polling_loop(self):
         """
