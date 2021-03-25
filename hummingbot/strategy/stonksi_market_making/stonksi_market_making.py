@@ -109,6 +109,8 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.logger().warning(f"{self._exchange.name} is not ready. Please wait...")
                 return
             else:
+                if len(self._exchange.limit_orders) > 0:
+                    self._exchange.cancel_all(3)
                 self.logger().info(f"{self._exchange.name} is ready. Trading started.")
                 self.create_budget_allocation()
 

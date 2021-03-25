@@ -736,11 +736,18 @@ class CryptoComExchange(ExchangeBase):
         cancellation_results = []
         try:
             for trading_pair in self._trading_pairs:
-                await self._api_request(
-                    "post",
-                    "private/cancel-all-orders",
-                    {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
-                    True
+                try:
+                    await self._api_request(
+                        "post",
+                        "private/cancel-all-orders",
+                        {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
+                        True
+                    )
+                except Exception:
+                    self.logger().network(
+                    "Failed to cancel all orders.",
+                    exc_info=True,
+                    app_warning_msg="Failed to cancel all orders on Crypto.com. Check API key and network connection."
                 )
             open_orders = await self.get_open_orders()
             for cl_order_id, tracked_order in self._in_flight_orders.items():
