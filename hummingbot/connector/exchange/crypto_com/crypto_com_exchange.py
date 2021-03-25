@@ -187,7 +187,7 @@ class CryptoComExchange(ExchangeBase):
         """
         await asyncio.sleep(1.0)
         await safe_gather(self._update_balances(True))
-        await asyncio.sleep(3.0)
+        await asyncio.sleep(1.0)
         self._order_book_tracker.start()   
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
         if self._trading_required:
@@ -556,13 +556,18 @@ class CryptoComExchange(ExchangeBase):
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            self.stop_tracking_order(order_id)
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
                                 f"Stopped tracking order manually."
             )
+            self.trigger_event(MarketEvent.OrderCancelled,
+                               OrderCancelledEvent(
+                                   self.current_timestamp,
+                                   client_order_id))
+            tracked_order.cancelled_event.set()
+            self.stop_tracking_order(client_order_id)
             return order_id
 
     async def _status_polling_loop(self):
@@ -594,7 +599,7 @@ class CryptoComExchange(ExchangeBase):
         Calls REST API to update total and available balances.
         """
         if not force_now:
-            await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]))
+            await asyncio.sleep(random.choice([0.0, 1.0, 2.0, 3.0, 4.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
