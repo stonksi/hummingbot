@@ -93,7 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
-        self._flagged_for_update = False
+        self._time_until_update = random.uniform(1.0, 3.0)
 
     @property
     def name(self) -> str:
@@ -764,19 +764,19 @@ class CryptoComExchange(ExchangeBase):
         Is called automatically by the clock for each clock's tick (1 second by default).
         It checks if status polling task is due for execution.
         """
-        time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
+        #time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         now = time.time()
         poll_interval = (self.SHORT_POLL_INTERVAL
                          if now - self._user_stream_tracker.last_recv_time > 60.0
                          else self.LONG_POLL_INTERVAL)
         last_tick = int(self._last_timestamp / poll_interval)
         current_tick = int(timestamp / poll_interval)
-        if current_tick > last_tick:
-            if not self._poll_notifier.is_set() and not self._flagged_for_update:
-                self._flagged_for_update = True
-                time.sleep(random.uniform(10.0, 50.0))
-                self._flagged_for_update = False
+        if current_tick > last_tick and not self._poll_notifier.is_set():
+            if self._time_until_update > 1:
+                self._time_until_update = _time_until_update - 1
+            else:
                 self._poll_notifier.set()
+                self._time_until_update = random.uniform(5.0, 20.0)
         self._last_timestamp = timestamp
 
     def get_fee(self,
