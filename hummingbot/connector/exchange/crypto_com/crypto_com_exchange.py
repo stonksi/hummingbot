@@ -757,6 +757,7 @@ class CryptoComExchange(ExchangeBase):
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick:
             if not self._poll_notifier.is_set():
+                time.sleep(random.choice([0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
                 self._poll_notifier.set()
         self._last_timestamp = timestamp
 
