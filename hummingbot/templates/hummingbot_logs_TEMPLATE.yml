@@ -28,9 +28,9 @@ handlers:
         formatter: simple
         filename: $PROJECT_DIR/logs/logs_$STRATEGY_FILE_PATH.log
         encoding: utf8
-        when: "D"
-        interval: 1
-        backupCount: 7
+        when: "M"
+        interval: 30
+        backupCount: 6
     report_proxy_handler:
         class: hummingbot.logger.reporting_proxy_handler.ReportingProxyHandler
         level: DEBUG
