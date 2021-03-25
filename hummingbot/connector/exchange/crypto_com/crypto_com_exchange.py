@@ -572,7 +572,7 @@ class CryptoComExchange(ExchangeBase):
             try:
                 self._poll_notifier = asyncio.Event()
                 await self._poll_notifier.wait()
-                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]))
+                await asyncio.sleep(random.choice([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0]))
                 await safe_gather(
                     self._update_balances(),
                     self._update_order_status(),
@@ -592,6 +592,7 @@ class CryptoComExchange(ExchangeBase):
         """
         Calls REST API to update total and available balances.
         """
+        await asyncio.sleep(random.choice([1.0, 2.0]))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
