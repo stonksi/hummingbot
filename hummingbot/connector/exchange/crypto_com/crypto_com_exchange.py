@@ -93,6 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
+        self._flagged_for_update = False
 
     @property
     def name(self) -> str:
@@ -186,9 +187,10 @@ class CryptoComExchange(ExchangeBase):
         updating statuses and tracking user data.
         """
         await asyncio.sleep(1.0)
-        await safe_gather(self._update_balances(True))
+        await safe_gather(self._update_balances())
         await asyncio.sleep(1.0)
         self._order_book_tracker.start()   
+        await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
         if self._trading_required:
             self._status_polling_task = safe_ensure_future(self._status_polling_loop())
@@ -594,12 +596,10 @@ class CryptoComExchange(ExchangeBase):
                                                       "Check API key and network connection.")
                 await asyncio.sleep(0.5)
 
-    async def _update_balances(self, force_now: bool = False):
+    async def _update_balances(self):
         """
         Calls REST API to update total and available balances.
         """
-        if not force_now:
-            await asyncio.sleep(random.uniform(10.0, 50.0))
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._api_request("post", "private/get-account-summary", {}, True)
@@ -772,7 +772,10 @@ class CryptoComExchange(ExchangeBase):
         last_tick = int(self._last_timestamp / poll_interval)
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick:
-            if not self._poll_notifier.is_set():
+            if not self._poll_notifier.is_set() and not self._flagged_for_update:
+                self._flagged_for_update = True
+                time.sleep(random.uniform(10.0, 50.0))
+                self._flagged_for_update = False
                 self._poll_notifier.set()
         self._last_timestamp = timestamp
 
