@@ -56,6 +56,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                  order_optimization_enabled: bool = False,
                  order_optimization_depth_pct: Decimal = Decimal("0"),
                  order_optimization_failsafe_enabled: bool = True,
+                 inventory_max_available_token_amount: Decimal = Decimal("-1"),
                  status_report_interval: float = 900,
                  hb_app_notification: bool = False):
         super().__init__()
@@ -77,6 +78,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._order_optimization_enabled = order_optimization_enabled
         self._order_optimization_depth_pct = order_optimization_depth_pct
         self._order_optimization_failsafe_enabled = order_optimization_failsafe_enabled
+        self._inventory_max_available_token_amount = inventory_max_available_token_amount
         self._ev_loop = asyncio.get_event_loop()
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
@@ -482,7 +484,11 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         total_bals = {t: s_decimal_zero for t in tokens}
         total_bals.update(self._exchange.get_all_balances())
         for token in tokens:
-            adjusted_bals[token] = self._exchange.get_available_balance(token)
+            avail_bal = self._exchange.get_available_balance(token)
+            if token == self._token and 0 <= self._inventory_max_available_token_amount < avail_bal:
+                adjusted_bals[token] = self._inventory_max_available_token_amount
+            else:
+                adjusted_bals[token] = avail_bal
         for order in self.active_orders:
             base, quote = order.trading_pair.split("-")
             if order.is_buy:

@@ -63,3 +63,6 @@ order_optimization_depth_pct: null
 
 # Use failsafe price (one above/below next price) when optimization cannot put order on top/bottom of order book (true/false).
 order_optimization_failsafe_enabled: null
+
+# inventory_max_available_token_amount (-1 = disabled)
+inventory_max_available_token_amount: null
