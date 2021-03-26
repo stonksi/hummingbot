@@ -109,10 +109,9 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.logger().warning(f"{self._exchange.name} is not ready. Please wait...")
                 return
             else:
-                if len(self._exchange.limit_orders) > 0:
-                    self._exchange.cancel_all(3)
                 self.logger().info(f"{self._exchange.name} is ready. Trading started.")
                 self.create_budget_allocation()
+                self._ready_to_trade = True
 
         time.sleep(random.choice([0.0, 0.1, 0.2, 0.3]))
         #self.update_mid_prices()
