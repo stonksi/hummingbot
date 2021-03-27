@@ -556,24 +556,24 @@ class CryptoComExchange(ExchangeBase):
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-                                f"Removing all orders that are not open according to CryptoCom."
+            #                    f"Removing all orders that are not open according to CryptoCom."
             )
-            try:
-                open_orders = await self.get_open_orders()
-                for cl_order_id, tracked_order in self._in_flight_orders.items():
-                    open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
-                    if not open_order:
-                        self.trigger_event(MarketEvent.OrderCancelled,
-                                        OrderCancelledEvent(self.current_timestamp, cl_order_id))
-                        tracked_order.cancelled_event.set()
-                        self.stop_tracking_order(cl_order_id)
-                return order_id
-            except Exception as ex:
-                self.logger().network(
-                    f"Failed to remove all orders that are not open according to CryptoCom. ({str(ex)})",
-                    exc_info=True,
-                    app_warning_msg=f"Failed to remove all orders that are not open according to CryptoCom."
-                )
+            #try:
+            #    open_orders = await self.get_open_orders()
+            #    for cl_order_id, tracked_order in self._in_flight_orders.items():
+            #        open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
+            #        if not open_order:
+            #            self.trigger_event(MarketEvent.OrderCancelled,
+            #                            OrderCancelledEvent(self.current_timestamp, cl_order_id))
+            #            tracked_order.cancelled_event.set()
+            #            self.stop_tracking_order(cl_order_id)
+            #    return order_id
+            #except Exception as ex:
+            #    self.logger().network(
+            #        f"Failed to remove all orders that are not open according to CryptoCom. ({str(ex)})",
+            #        exc_info=True,
+            #        app_warning_msg=f"Failed to remove all orders that are not open according to CryptoCom."
+            #    )
             #self.trigger_event(MarketEvent.OrderCancelled,
             #                   OrderCancelledEvent(
             #                       self.current_timestamp,
@@ -581,7 +581,7 @@ class CryptoComExchange(ExchangeBase):
             #if not tracked_order is None:
             #    tracked_order.cancelled_event.set()
             #self.stop_tracking_order(order_id)
-            #return order_id
+            return order_id
 
     async def _status_polling_loop(self):
         """
