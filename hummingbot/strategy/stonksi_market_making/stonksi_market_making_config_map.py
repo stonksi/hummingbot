@@ -157,6 +157,6 @@ stonksi_market_making_config_map = {
         ConfigVar(key="inventory_max_available_token_amount",
                   prompt="Set max available amount for token? (-1 = disabled) >>> ",
                   type_str="decimal",
-                  validator=lambda v: validate_decimal(v, -1, inclusive=False),
+                  validator=lambda v: validate_decimal(v, -1, inclusive=True),
                   default=-1),
 }

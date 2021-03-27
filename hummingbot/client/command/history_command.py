@@ -69,16 +69,17 @@ class HistoryCommand:
         if display_report:
             self.report_header(start_time)
         return_pcts = []
+        simple_mode = len(market_info) >= 4
         for market, symbol in market_info:
             cur_trades = [t for t in trades if t.market == market and t.symbol == symbol]
             cur_balances = await self.get_current_balances(market)
             perf = await calculate_performance_metrics(market, symbol, cur_trades, cur_balances)
             if display_report:
-                self.report_performance_by_market(market, symbol, perf, precision)
+                self.report_performance_by_market(market, symbol, perf, precision, market_count, simple_mode)
             return_pcts.append(perf.return_pct)
         avg_return = sum(return_pcts) / len(return_pcts) if len(return_pcts) > 0 else s_decimal_0
-        if display_report and len(return_pcts) > 1:
-            self._notify(f"\nAveraged Return = {avg_return:.2%}")
+        #if display_report and len(return_pcts) > 1:
+            #self._notify(f"\nAveraged Return = {avg_return:.2%}")       
         return avg_return
 
     async def get_current_balances(self,  # type: HummingbotApplication
@@ -116,55 +117,57 @@ class HistoryCommand:
                                      market: str,
                                      trading_pair: str,
                                      perf: PerformanceMetrics,
-                                     precision: int):
+                                     precision: int,
+                                     simple_mode: bool = False):
         lines = []
         base, quote = trading_pair.split("-")
         lines.extend(
             [f"\n{market} / {trading_pair}"]
         )
 
-        trades_columns = ["", "buy", "sell", "total"]
-        trades_data = [
-            [f"{'Number of trades':<27}", perf.num_buys, perf.num_sells, perf.num_trades],
-            [f"{f'Total trade volume ({base})':<27}",
-             smart_round(perf.b_vol_base, precision),
-             smart_round(perf.s_vol_base, precision),
-             smart_round(perf.tot_vol_base, precision)],
-            [f"{f'Total trade volume ({quote})':<27}",
-             smart_round(perf.b_vol_quote, precision),
-             smart_round(perf.s_vol_quote, precision),
-             smart_round(perf.tot_vol_quote, precision)],
-            [f"{'Avg price':<27}",
-             smart_round(perf.avg_b_price, precision),
-             smart_round(perf.avg_s_price, precision),
-             smart_round(perf.avg_tot_price, precision)],
-        ]
-        trades_df: pd.DataFrame = pd.DataFrame(data=trades_data, columns=trades_columns)
-        lines.extend(["", "  Trades:"] + ["    " + line for line in trades_df.to_string(index=False).split("\n")])
+        if not simple_mode:
+            trades_columns = ["", "buy", "sell", "total"]
+            trades_data = [
+                [f"{'Number of trades':<27}", perf.num_buys, perf.num_sells, perf.num_trades],
+                [f"{f'Total trade volume ({base})':<27}",
+                smart_round(perf.b_vol_base, precision),
+                smart_round(perf.s_vol_base, precision),
+                smart_round(perf.tot_vol_base, precision)],
+                [f"{f'Total trade volume ({quote})':<27}",
+                smart_round(perf.b_vol_quote, precision),
+                smart_round(perf.s_vol_quote, precision),
+                smart_round(perf.tot_vol_quote, precision)],
+                [f"{'Avg price':<27}",
+                smart_round(perf.avg_b_price, precision),
+                smart_round(perf.avg_s_price, precision),
+                smart_round(perf.avg_tot_price, precision)],
+            ]
+            trades_df: pd.DataFrame = pd.DataFrame(data=trades_data, columns=trades_columns)
+            lines.extend(["", "  Trades:"] + ["    " + line for line in trades_df.to_string(index=False).split("\n")])
 
-        assets_columns = ["", "start", "current", "change"]
-        assets_data = [
-            [f"{base:<17}", "-", "-", "-"] if market in DERIVATIVES else  # No base asset for derivatives because they are margined
-            [f"{base:<17}",
-             smart_round(perf.start_base_bal, precision),
-             smart_round(perf.cur_base_bal, precision),
-             smart_round(perf.tot_vol_base, precision)],
-            [f"{quote:<17}",
-             smart_round(perf.start_quote_bal, precision),
-             smart_round(perf.cur_quote_bal, precision),
-             smart_round(perf.tot_vol_quote, precision)],
-            [f"{trading_pair + ' price':<17}",
-             smart_round(perf.start_price),
-             smart_round(perf.cur_price),
-             smart_round(perf.cur_price - perf.start_price)],
-            [f"{'Base asset %':<17}", "-", "-", "-"] if market in DERIVATIVES else  # No base asset for derivatives because they are margined
-            [f"{'Base asset %':<17}",
-             f"{perf.start_base_ratio_pct:.2%}",
-             f"{perf.cur_base_ratio_pct:.2%}",
-             f"{perf.cur_base_ratio_pct - perf.start_base_ratio_pct:.2%}"],
-        ]
-        assets_df: pd.DataFrame = pd.DataFrame(data=assets_data, columns=assets_columns)
-        lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
+            assets_columns = ["", "start", "current", "change"]
+            assets_data = [
+                [f"{base:<17}", "-", "-", "-"] if market in DERIVATIVES else  # No base asset for derivatives because they are margined
+                [f"{base:<17}",
+                smart_round(perf.start_base_bal, precision),
+                smart_round(perf.cur_base_bal, precision),
+                smart_round(perf.tot_vol_base, precision)],
+                [f"{quote:<17}",
+                smart_round(perf.start_quote_bal, precision),
+                smart_round(perf.cur_quote_bal, precision),
+                smart_round(perf.tot_vol_quote, precision)],
+                [f"{trading_pair + ' price':<17}",
+                smart_round(perf.start_price),
+                smart_round(perf.cur_price),
+                smart_round(perf.cur_price - perf.start_price)],
+                [f"{'Base asset %':<17}", "-", "-", "-"] if market in DERIVATIVES else  # No base asset for derivatives because they are margined
+                [f"{'Base asset %':<17}",
+                f"{perf.start_base_ratio_pct:.2%}",
+                f"{perf.cur_base_ratio_pct:.2%}",
+                f"{perf.cur_base_ratio_pct - perf.start_base_ratio_pct:.2%}"],
+            ]
+            assets_df: pd.DataFrame = pd.DataFrame(data=assets_data, columns=assets_columns)
+            lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
         # Fix for staking discount on Crypto.com
         cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
