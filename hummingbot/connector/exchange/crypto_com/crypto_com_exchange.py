@@ -567,9 +567,9 @@ class CryptoComExchange(ExchangeBase):
             self.trigger_event(MarketEvent.OrderCancelled,
                                OrderCancelledEvent(
                                    self.current_timestamp,
-                                   client_order_id))
+                                   order_id))
             tracked_order.cancelled_event.set()
-            self.stop_tracking_order(client_order_id)
+            self.stop_tracking_order(order_id)
             return order_id
 
     async def _status_polling_loop(self):
