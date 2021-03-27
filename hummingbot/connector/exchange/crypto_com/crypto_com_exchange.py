@@ -322,7 +322,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
-        await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
+        #await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -345,14 +345,14 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            if attempt < 4:
-                await asyncio.sleep(random.choice([0.1, 0.2, 0.3]))
+            if attempt < 3:
+                await asyncio.sleep(random.choice([0.1, 0.2]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error parsing data from {url} (after 4 attempts). Error: {str(e)}")
+                raise IOError(f"Error parsing data from {url} (after 3 attempts). Error: {str(e)}")
         if response.status != 200:
             if attempt < 3:
-                await asyncio.sleep(random.uniform(0.5, 1.5))
+                await asyncio.sleep(random.choice([0.4, 0.5]))
                 await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
                 raise IOError(f"Error fetching data from {url} (after 3 attempts). HTTP status is {response.status}. "
