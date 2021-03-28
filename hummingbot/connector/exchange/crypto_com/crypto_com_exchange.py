@@ -322,6 +322,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
+        await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -345,11 +346,17 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            if attempt < 3:
-                await asyncio.sleep(random.choice([1.0, 1.2, 1.4]))
-                parsed_response = await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
-            else:
-                raise IOError(f"Error parsing data from {url} after attempt {str(attempt)}. Error: {str(e)}")
+            raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
+        if response.status != 200:
+            raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}. "
+                          f"Message: {parsed_response}")
+        if parsed_response["code"] != 0:
+            raise IOError(f"{url} API call failed, response: {parsed_response}")
+#            if attempt < 3:
+#                await asyncio.sleep(random.choice([1.0, 1.2, 1.4]))
+#                parsed_response = await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+#            else:
+#                raise IOError(f"Error parsing data from {url} after attempt {str(attempt)}. Error: {str(e)}")
 
 #        if response.status != 200:
 #            if attempt < 3:
@@ -359,8 +366,8 @@ class CryptoComExchange(ExchangeBase):
 #                raise IOError(f"Error FETCHING data from {url} after attempt {str(attempt)}. HTTP status is {response.status}. "
 #                              f"Message: {parsed_response}")
         
-        if parsed_response["code"] != 0:
-            raise Exception(f"{url} API call failed, response: {parsed_response}")
+#        if parsed_response["code"] != 0:
+#            raise Exception(f"{url} API call failed, response: {parsed_response}")
         # print(f"REQUEST: {method} {path_url} {params}")
         # print(f"RESPONSE: {parsed_response}")
         return parsed_response
@@ -553,16 +560,16 @@ class CryptoComExchange(ExchangeBase):
             return order_id
         except asyncio.CancelledError:
             raise
-        except IOError as ioe:
-            self.logger().network(
-                f"Failed to cancel order {order_id}: {str(ioe)}"
-                f"Manually removing order from in_flight_orders.",
-                exc_info=True,
-                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom: {str(ioe)} "
-                                f"Manually removing order from in_flight_orders."
-            )
-            self.stop_tracking_order(order_id)
-            return order_id
+#        except IOError as ioe:
+#            self.logger().network(
+#                f"Failed to cancel order {order_id}: {str(ioe)}"
+#                f"Manually removing order from in_flight_orders.",
+#                exc_info=True,
+#                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom: {str(ioe)} "
+#                                f"Manually removing order from in_flight_orders."
+#            )
+#            self.stop_tracking_order(order_id)
+#            return order_id
         except Exception as e:
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
