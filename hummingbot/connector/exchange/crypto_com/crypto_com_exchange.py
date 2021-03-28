@@ -573,7 +573,7 @@ class CryptoComExchange(ExchangeBase):
                     self._update_balances(),
                     self._update_order_status(),
                 )
-                await self.purge_hanged_orders()
+                #await self.purge_hanged_orders()
                 self._last_poll_timestamp = self.current_timestamp
             except asyncio.CancelledError:
                 raise
