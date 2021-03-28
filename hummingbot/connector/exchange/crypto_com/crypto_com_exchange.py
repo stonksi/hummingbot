@@ -322,7 +322,7 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
-        await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
+        await asyncio.sleep(random.uniform(0.0, 0.5))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
