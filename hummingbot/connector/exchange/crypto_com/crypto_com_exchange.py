@@ -186,7 +186,7 @@ class CryptoComExchange(ExchangeBase):
         It starts tracking order book, polling trading rules,
         updating statuses and tracking user data.
         """
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
         await safe_gather(self._update_balances())
         await asyncio.sleep(1.0)
         self._order_book_tracker.start()   

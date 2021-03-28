@@ -133,7 +133,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
 
         if (self._order_overhaul_countdown < 1):
             self._order_overhaul_countdown = random.uniform(100.0, 140.0)
-            open_orders = self._exchange.get_open_orders()
+            open_orders = asyncio.run(self._exchange.get_open_orders())
             for cl_order_id, tracked_order in self._exchange.in_flight_orders.items():
                 open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
                 if not open_order:
