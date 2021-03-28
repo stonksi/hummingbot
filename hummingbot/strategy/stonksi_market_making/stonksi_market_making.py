@@ -91,6 +91,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         #self._volatility = {market: s_decimal_nan for market in self._market_infos}
         self._last_vol_reported = 0.
         self._hb_app_notification = hb_app_notification
+        self._order_overhaul_countdown = random.uniform(7.0, 13.0)
 
         self.add_markets([exchange])
 
@@ -129,6 +130,18 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self.execute_orders_proposal(proposals)
 
         self._last_timestamp = timestamp
+
+        if (self._order_overhaul_countdown < 1)
+            self._order_overhaul_countdown = random.uniform(100.0, 140.0)
+            open_orders = await self._exchange.get_open_orders()
+            for cl_order_id, tracked_order in self._exchange.in_flight_orders.items():
+                open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
+                if not open_order:
+                    self._exchange.trigger_event(MarketEvent.OrderCancelled,
+                                       OrderCancelledEvent(self.current_timestamp, cl_order_id))
+                    self._exchange.stop_tracking_order(cl_order_id)
+        else
+            self._order_overhaul_countdown -= 1
 
     @staticmethod
     def order_age(order: LimitOrder) -> float:

@@ -322,7 +322,6 @@ class CryptoComExchange(ExchangeBase):
         signature to the request.
         :returns A response in json format.
         """
-        #await asyncio.sleep(random.choice([0.0, 0.1, 0.2]))
         url = f"{Constants.REST_URL}/{path_url}"
         client = await self._http_client()
         if is_auth_required:
@@ -345,17 +344,18 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            if attempt < 3:
-                await asyncio.sleep(random.choice([0.1, 0.2]))
-                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            if attempt < 2:
+                await asyncio.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5]))
+                return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error parsing data from {url} (after 3 attempts). Error: {str(e)}")
+                raise IOError(f"Error parsing data from {url} (after 2 attempts). Error: {str(e)}")
+
         if response.status != 200:
-            if attempt < 3:
-                await asyncio.sleep(random.choice([0.4, 0.5]))
-                await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+            if attempt < 4:
+                await asyncio.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5]))
+                return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error fetching data from {url} (after 3 attempts). HTTP status is {response.status}. "
+                raise IOError(f"Error fetching data from {url} (after 4 attempts). HTTP status is {response.status}. "
                               f"Message: {parsed_response}")
         if parsed_response["code"] != 0:
             raise IOError(f"{url} API call failed, response: {parsed_response}")
@@ -556,31 +556,8 @@ class CryptoComExchange(ExchangeBase):
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-            #                    f"Removing all orders that are not open according to CryptoCom."
+            #                    f"Check API key and network connection."
             )
-            #try:
-            #    open_orders = await self.get_open_orders()
-            #    for cl_order_id, tracked_order in self._in_flight_orders.items():
-            #        open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
-            #        if not open_order:
-            #            self.trigger_event(MarketEvent.OrderCancelled,
-            #                            OrderCancelledEvent(self.current_timestamp, cl_order_id))
-            #            tracked_order.cancelled_event.set()
-            #            self.stop_tracking_order(cl_order_id)
-            #    return order_id
-            #except Exception as ex:
-            #    self.logger().network(
-            #        f"Failed to remove all orders that are not open according to CryptoCom. ({str(ex)})",
-            #        exc_info=True,
-            #        app_warning_msg=f"Failed to remove all orders that are not open according to CryptoCom."
-            #    )
-            #self.trigger_event(MarketEvent.OrderCancelled,
-            #                   OrderCancelledEvent(
-            #                       self.current_timestamp,
-            #                       order_id))
-            #if not tracked_order is None:
-            #    tracked_order.cancelled_event.set()
-            #self.stop_tracking_order(order_id)
             return order_id
 
     async def _status_polling_loop(self):
@@ -747,19 +724,12 @@ class CryptoComExchange(ExchangeBase):
         cancellation_results = []
         try:
             for trading_pair in self._trading_pairs:
-                #try:
                 await self._api_request(
                     "post",
                     "private/cancel-all-orders",
                     {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
                     True
                 )
-                #except Exception:
-                #    self.logger().network(
-                #    "Failed to cancel all orders.",
-                #    exc_info=True,
-                #    app_warning_msg="Failed to cancel all orders on Crypto.com. Check API key and network connection."
-                #)
             open_orders = await self.get_open_orders()
             for cl_order_id, tracked_order in self._in_flight_orders.items():
                 open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
@@ -789,11 +759,11 @@ class CryptoComExchange(ExchangeBase):
         last_tick = int(self._last_timestamp / poll_interval)
         current_tick = int(timestamp / poll_interval)
         if current_tick > last_tick and not self._poll_notifier.is_set():
-            if self._time_until_update >= 1.0:
-                self._time_until_update -= 1.0
-            else:
+            if self._time_until_update < 1.0:
+                self._time_until_update = random.uniform(3.0, 20.0)
                 self._poll_notifier.set()
-                self._time_until_update = random.uniform(5.0, 20.0)
+            else:
+                self._time_until_update -= 1.0
         self._last_timestamp = timestamp
 
     def get_fee(self,
