@@ -668,7 +668,7 @@ class CryptoComExchange(ExchangeBase):
         Updates in-flight order and trigger order filled event for trade message received. Triggers order completed
         event if the total executed amount equals to the specified order amount.
         """
-        in_flight_orders = self._in_flight_orders.values()
+        in_flight_orders = self._in_flight_orders.copy()
         for order in in_flight_orders:
             await order.get_exchange_order_id()
         track_order = [o for o in in_flight_orders if trade_msg["order_id"] == o.exchange_order_id]
