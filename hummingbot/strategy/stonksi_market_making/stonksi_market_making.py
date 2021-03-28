@@ -116,7 +116,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.create_budget_allocation()
                 self._ready_to_trade = True
 
-        time.sleep(random.unform(0.0, 0.5))
+        time.sleep(random.uniform(0.0, 0.5))
         #self.update_mid_prices()
         #self.update_volatility()
         proposals = self.create_base_proposals()
