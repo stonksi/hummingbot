@@ -715,12 +715,12 @@ class CryptoComExchange(ExchangeBase):
 
     async def purge_hanged_orders(self):
         open_orders = await self.get_open_orders()
-            for cl_order_id, tracked_order in self._in_flight_orders.items():
-                open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
-                if not open_order:
-                    self.trigger_event(MarketEvent.OrderCancelled,
-                                       OrderCancelledEvent(self.current_timestamp, cl_order_id))
-                    self.stop_tracking_order(cl_order_id)
+        for cl_order_id, tracked_order in self._in_flight_orders.items():
+            open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
+            if not open_order:
+                self.trigger_event(MarketEvent.OrderCancelled,
+                                    OrderCancelledEvent(self.current_timestamp, cl_order_id))
+                self.stop_tracking_order(cl_order_id)
 
     async def cancel_all(self, timeout_seconds: float):
         """
