@@ -140,7 +140,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                     self._exchange.trigger_event(MarketEvent.OrderCancelled,
                                        OrderCancelledEvent(self.current_timestamp, cl_order_id))
                     self._exchange.stop_tracking_order(cl_order_id)
-        else
+        else:
             self._order_overhaul_countdown -= 1
 
     @staticmethod
