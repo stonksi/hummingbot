@@ -344,16 +344,12 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            if attempt < 3:
-                await asyncio.sleep(random.choice([0.1, 0.2, 0.3])
-                return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
-            else:
-                raise Exception(f"Error PARSING data from {url} (after 3 attempts). Error: {str(e)}")
+            raise Exception(f"Error PARSING data from {url}. Attempt: {str(attempt)} Error: {str(e)}")
 
         if response.status != 200:
             if attempt < 3:
                 await asyncio.sleep(random.choice([0.1, 0.2, 0.3])
-                return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
+                parsed_response = await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
                 raise IOError(f"Error FETCHING data from {url} (after 3 attempts). HTTP status is {response.status}. "
                               f"Message: {parsed_response}")
