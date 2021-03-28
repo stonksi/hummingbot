@@ -665,9 +665,10 @@ class CryptoComExchange(ExchangeBase):
         event if the total executed amount equals to the specified order amount.
         """
         in_flight_orders = list(self._in_flight_orders.values())
-        for order in in_flight_orders if order:
-            await order.get_exchange_order_id()
-        track_order = [o for o in in_flight_orders if o and trade_msg["order_id"] == o.exchange_order_id]
+        for order in in_flight_orders:
+            if order is not None:
+                await order.get_exchange_order_id()
+        track_order = [o for o in in_flight_orders if o is not None and trade_msg["order_id"] == o.exchange_order_id]
         if not track_order:
             return
         tracked_order = track_order[0]
