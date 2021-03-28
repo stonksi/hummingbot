@@ -93,7 +93,7 @@ class CryptoComExchange(ExchangeBase):
         self._user_stream_event_listener_task = None
         self._trading_rules_polling_task = None
         self._last_poll_timestamp = 0
-        self._time_until_update: float = 0.0
+        self._time_until_update: float = 1.0
 
     @property
     def name(self) -> str:
@@ -188,7 +188,7 @@ class CryptoComExchange(ExchangeBase):
         """
         await asyncio.sleep(2.0)
         await safe_gather(self._update_balances())
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
         self._order_book_tracker.start()   
         await asyncio.sleep(1.0)
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
@@ -573,6 +573,7 @@ class CryptoComExchange(ExchangeBase):
                     self._update_balances(),
                     self._update_order_status(),
                 )
+                await self.purge_hanged_orders()
                 self._last_poll_timestamp = self.current_timestamp
             except asyncio.CancelledError:
                 raise
@@ -711,6 +712,15 @@ class CryptoComExchange(ExchangeBase):
                                            tracked_order.fee_paid,
                                            tracked_order.order_type))
             self.stop_tracking_order(tracked_order.client_order_id)
+
+    async def purge_hanged_orders(self):
+        open_orders = await self.get_open_orders()
+            for cl_order_id, tracked_order in self._in_flight_orders.items():
+                open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
+                if not open_order:
+                    self.trigger_event(MarketEvent.OrderCancelled,
+                                       OrderCancelledEvent(self.current_timestamp, cl_order_id))
+                    self.stop_tracking_order(cl_order_id)
 
     async def cancel_all(self, timeout_seconds: float):
         """
