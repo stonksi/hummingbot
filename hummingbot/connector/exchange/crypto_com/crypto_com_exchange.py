@@ -344,18 +344,14 @@ class CryptoComExchange(ExchangeBase):
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
-            if attempt < 2:
-                await asyncio.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5]))
-                return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
-            else:
-                raise IOError(f"Error parsing data from {url} (after 2 attempts). Error: {str(e)}")
+            raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
 
         if response.status != 200:
-            if attempt < 4:
-                await asyncio.sleep(random.choice([0.1, 0.2, 0.3, 0.4, 0.5]))
+            if attempt < 3:
+                await asyncio.sleep(1.0)
                 return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error fetching data from {url} (after 4 attempts). HTTP status is {response.status}. "
+                raise IOError(f"Error fetching data from {url} (after 3 attempts). HTTP status is {response.status}. "
                               f"Message: {parsed_response}")
         if parsed_response["code"] != 0:
             raise IOError(f"{url} API call failed, response: {parsed_response}")
@@ -558,7 +554,7 @@ class CryptoComExchange(ExchangeBase):
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
             #                    f"Check API key and network connection."
             )
-            return order_id
+            #return order_id
 
     async def _status_polling_loop(self):
         """
@@ -668,10 +664,10 @@ class CryptoComExchange(ExchangeBase):
         Updates in-flight order and trigger order filled event for trade message received. Triggers order completed
         event if the total executed amount equals to the specified order amount.
         """
-        in_flight_orders = self._in_flight_orders.copy()
-        for order in in_flight_orders:
+        in_flight_orders = list(self._in_flight_orders.values())
+        for order in in_flight_orders if order:
             await order.get_exchange_order_id()
-        track_order = [o for o in in_flight_orders if trade_msg["order_id"] == o.exchange_order_id]
+        track_order = [o for o in in_flight_orders if o and trade_msg["order_id"] == o.exchange_order_id]
         if not track_order:
             return
         tracked_order = track_order[0]
