@@ -454,7 +454,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                     order_type=OrderType.LIMIT_MAKER,
                     price=proposal.sell.price
                 )
-            #if proposal.buy.size > 0 or proposal.sell.size > 0:
+            if proposal.buy.size > 0 or proposal.sell.size > 0:
             #    if not self._volatility[proposal.market].is_nan() and spread > self._spread:
             #        adjusted_vol = self._volatility[proposal.market] * self._volatility_to_spread_multiplier
             #        if adjusted_vol > self._spread:
