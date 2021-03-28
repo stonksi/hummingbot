@@ -592,7 +592,9 @@ class CryptoComExchange(ExchangeBase):
                     self._update_balances(),
                     self._update_order_status(),
                 )
-                #await self.purge_hanged_orders()
+                if len(self.in_flight_orders) > 20
+                    await asyncio.sleep(random.uniform(1.1, 1.9))
+                    await self._purge_hanged_orders()
                 self._last_poll_timestamp = self.current_timestamp
             except asyncio.CancelledError:
                 raise
@@ -600,8 +602,7 @@ class CryptoComExchange(ExchangeBase):
                 self.logger().error(str(e), exc_info=True)
                 self.logger().network("Unexpected error while fetching account updates.",
                                       exc_info=True,
-                                      app_warning_msg="Could not fetch account updates from Crypto.com. "
-                                                      "Check API key and network connection.")
+                                      app_warning_msg=f"Could not fetch account updates from Crypto.com: {str(e)} ")
                 await asyncio.sleep(0.5)
 
     async def _update_balances(self):
@@ -734,14 +735,14 @@ class CryptoComExchange(ExchangeBase):
                                            tracked_order.order_type))
             self.stop_tracking_order(tracked_order.client_order_id)
 
-    #async def purge_hanged_orders(self):
-    #    open_orders = await self.get_open_orders()
-    #    for cl_order_id, tracked_order in self._in_flight_orders.items():
-    #        open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
-    #        if not open_order:
-    #            self.trigger_event(MarketEvent.OrderCancelled,
-    #                                OrderCancelledEvent(self.current_timestamp, cl_order_id))
-    #            self.stop_tracking_order(cl_order_id)
+    async def _purge_hanged_orders(self):
+        open_orders = await self.get_open_orders()
+        for cl_order_id, tracked_order in self._in_flight_orders.items():
+            open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
+            if not open_order:
+                self.trigger_event(MarketEvent.OrderCancelled,
+                                   OrderCancelledEvent(self.current_timestamp, cl_order_id))
+                #self.stop_tracking_order(cl_order_id)
 
     async def cancel_all(self, timeout_seconds: float):
         """
