@@ -267,7 +267,9 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         return "\n".join(lines)
 
     def start(self, clock: Clock, timestamp: float):
+        time.sleep(2.0)
         restored_orders = self._exchange.limit_orders
+        time.sleep(2.0)
         for order in restored_orders:
             self._exchange.cancel(order.trading_pair, order.client_order_id)
 
