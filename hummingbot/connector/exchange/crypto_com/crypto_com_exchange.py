@@ -592,7 +592,7 @@ class CryptoComExchange(ExchangeBase):
                     self._update_balances(),
                     self._update_order_status(),
                 )
-                if len(self.in_flight_orders) > 20
+                if len(self.in_flight_orders) > 20:
                     await asyncio.sleep(random.uniform(1.1, 1.9))
                     await self._purge_hanged_orders()
                 self._last_poll_timestamp = self.current_timestamp
