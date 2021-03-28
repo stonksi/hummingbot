@@ -131,7 +131,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
 
         self._last_timestamp = timestamp
 
-        if (self._order_overhaul_countdown < 1)
+        if (self._order_overhaul_countdown < 1):
             self._order_overhaul_countdown = random.uniform(100.0, 140.0)
             open_orders = await self._exchange.get_open_orders()
             for cl_order_id, tracked_order in self._exchange.in_flight_orders.items():
