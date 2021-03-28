@@ -351,8 +351,9 @@ class CryptoComExchange(ExchangeBase):
                 await asyncio.sleep(1.0)
                 return await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
-                raise IOError(f"Error fetching data from {url} (after 3 attempts). HTTP status is {response.status}. "
-                              f"Message: {parsed_response}")
+                raise (f"Error fetching data from {url} (after 3 attempts). HTTP status is {response.status}. "
+                       f"Message: {parsed_response}")
+        
         if parsed_response["code"] != 0:
             raise IOError(f"{url} API call failed, response: {parsed_response}")
         # print(f"REQUEST: {method} {path_url} {params}")
@@ -552,7 +553,7 @@ class CryptoComExchange(ExchangeBase):
                 f"Failed to cancel order {order_id}: {str(ioe)}"
                 f"Manually removing order from in_flight_orders.",
                 exc_info=True,
-                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom: {str(ioe)} "
                                 f"Manually removing order from in_flight_orders."
             )
             self.stop_tracking_order(order_id)
@@ -561,7 +562,7 @@ class CryptoComExchange(ExchangeBase):
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
-                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom: {str(e)} "
                 #                f"Manually removing order from in_flight_orders."
             )
             #return order_id
