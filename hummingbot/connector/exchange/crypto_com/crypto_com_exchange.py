@@ -341,6 +341,7 @@ class CryptoComExchange(ExchangeBase):
         else:
             raise NotImplementedError
 
+        parsed_response: Dict[str, Any] = {}
         try:
             parsed_response = json.loads(await response.text())
         except Exception as e:
@@ -348,7 +349,7 @@ class CryptoComExchange(ExchangeBase):
 
         if response.status != 200:
             if attempt < 3:
-                await asyncio.sleep(random.choice([0.1, 0.2, 0.3])
+                await asyncio.sleep(random.choice([0.1, 0.2, 0.3]))
                 parsed_response = await self._api_request(method, path_url, params, is_auth_required, attempt + 1)
             else:
                 raise IOError(f"Error FETCHING data from {url} (after 3 attempts). HTTP status is {response.status}. "
