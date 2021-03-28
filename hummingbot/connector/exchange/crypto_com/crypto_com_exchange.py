@@ -547,12 +547,22 @@ class CryptoComExchange(ExchangeBase):
             return order_id
         except asyncio.CancelledError:
             raise
+        except IOError as ioe:
+            self.logger().network(
+                f"Failed to cancel order {order_id}: {str(ioe)}"
+                f"Manually removing order from in_flight_orders.",
+                exc_info=True,
+                app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                                f"Manually removing order from in_flight_orders."
+            )
+            self.stop_tracking_order(order_id)
+            return order_id
         except Exception as e:
             self.logger().network(
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
-            #                    f"Check API key and network connection."
+                #                f"Manually removing order from in_flight_orders."
             )
             #return order_id
 
