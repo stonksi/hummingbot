@@ -424,8 +424,10 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                     cur_orders and not self.is_within_tolerance(cur_orders, proposal):
                 to_cancel = True
             if to_cancel:
+                #self.notify_hb_app("Has to cancel")
                 for order in cur_orders:
                     if order.trading_pair not in self._trading_pairs_to_redo:
+                        #self.notify_hb_app("Inside pair")
                         self._trading_pairs_to_redo.append(order.trading_pair)
                         self._exchange.cancel_trading_pair(order.trading_pair)
                         # To place new order on the next tick               
@@ -446,7 +448,9 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
 
     def execute_orders_proposal(self, proposals: List[Proposal]):
         for proposal in proposals:
-            if proposal.market not in self._trading_pairs_to_redo or self._refresh_times[proposal.market] > self.current_timestamp:
+            #self.notify_hb_app("One proposal")
+            cur_orders = [o for o in self.active_orders if o.trading_pair == proposal.market and o.trading_pair not in self._trading_pairs_to_redo]
+            if cur_orders or self._refresh_times[proposal.market] > self.current_timestamp:               
                 continue
             mid_price = self._market_infos[proposal.market].get_mid_price()
             spread = s_decimal_zero
