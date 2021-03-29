@@ -446,8 +446,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
 
     def execute_orders_proposal(self, proposals: List[Proposal]):
         for proposal in proposals:
-            if proposal.market not in self._trading_pairs_to_redo or
-               self._refresh_times[proposal.market] > self.current_timestamp:
+            if proposal.market not in self._trading_pairs_to_redo or self._refresh_times[proposal.market] > self.current_timestamp:
                 continue
             mid_price = self._market_infos[proposal.market].get_mid_price()
             spread = s_decimal_zero
