@@ -270,8 +270,11 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
     def start(self, clock: Clock, timestamp: float):
         time.sleep(1.0)
         restored_orders = self._exchange.limit_orders
+        cancelled_pairs = []
         for order in restored_orders:
-            self._exchange.cancel(order.trading_pair, order.client_order_id)
+            if order.trading_pair not in cancelled_pairs:
+                cancelled_pairs.append(order.trading_pair)
+                self._exchange.cancel_trading_pair(order.trading_pair)
 
     def stop(self, clock: Clock):
         pass
@@ -452,9 +455,9 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
             spread = s_decimal_zero
             if proposal.buy.size > 0:
                 spread = abs(proposal.buy.price - mid_price) / mid_price
-                self.logger().info(f"({proposal.market}) Creating a bid order {proposal.buy} value: "
-                                   f"{proposal.buy.size * proposal.buy.price:.2f} {proposal.quote()} spread: "
-                                   f"{spread:.2%}")
+                #self.logger().info(f"({proposal.market}) Creating a bid order {proposal.buy} value: "
+                #                   f"{proposal.buy.size * proposal.buy.price:.2f} {proposal.quote()} spread: "
+                #                   f"{spread:.2%}")
                 self.buy_with_specific_market(
                     self._market_infos[proposal.market],
                     proposal.buy.size,
@@ -463,9 +466,9 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 )
             if proposal.sell.size > 0:
                 spread = abs(proposal.sell.price - mid_price) / mid_price
-                self.logger().info(f"({proposal.market}) Creating an ask order at {proposal.sell} value: "
-                                   f"{proposal.sell.size * proposal.sell.price:.2f} {proposal.quote()} spread: "
-                                   f"{spread:.2%}")
+                #self.logger().info(f"({proposal.market}) Creating an ask order at {proposal.sell} value: "
+                #                   f"{proposal.sell.size * proposal.sell.price:.2f} {proposal.quote()} spread: "
+                #                   f"{spread:.2%}")
                 self.sell_with_specific_market(
                     self._market_infos[proposal.market],
                     proposal.sell.size,
