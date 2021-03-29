@@ -265,7 +265,7 @@ class MarketsRecorder:
         self.save_market_states(self._config_file_path, market, no_commit=True)
         session.commit()
         market.add_trade_fills_from_market_recorder({TradeFillOrderDetails(trade_fill_record.market, trade_fill_record.exchange_trade_id, trade_fill_record.symbol)})
-        self.append_to_csv(trade_fill_record)
+        #self.append_to_csv(trade_fill_record)
 
     def _did_complete_funding_payment(self,
                                       event_tag: int,
@@ -304,7 +304,7 @@ class MarketsRecorder:
         #df = pd.read_csv(file_path, header=None)
         #return tuple(df.iloc[0].values) == header
 
-    def append_to_csv(self, trade: TradeFill):
+    #def append_to_csv(self, trade: TradeFill):
         #csv_filename = "trades_" + trade.config_file_path[:-4] + ".csv"
         #csv_path = os.path.join(data_path(), csv_filename)
 
