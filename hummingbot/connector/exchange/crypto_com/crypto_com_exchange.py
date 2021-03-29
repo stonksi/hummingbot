@@ -247,7 +247,7 @@ class CryptoComExchange(ExchangeBase):
         while True:
             try:
                 await self._update_trading_rules()
-                await asyncio.sleep(60)
+                await asyncio.sleep(random.uniform(50.0, 70.0))
             except asyncio.CancelledError:
                 raise
             except Exception as e:
@@ -688,7 +688,7 @@ class CryptoComExchange(ExchangeBase):
         # Update order execution status
         tracked_order.last_state = order_msg["status"]
         if tracked_order.is_cancelled:
-            #self.logger().info(f"Successfully cancelled order {client_order_id}.")
+            self.logger().info(f"Successfully cancelled order {client_order_id}.")
             self.trigger_event(MarketEvent.OrderCancelled,
                                OrderCancelledEvent(
                                    self.current_timestamp,
@@ -776,6 +776,7 @@ class CryptoComExchange(ExchangeBase):
                     {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
                     True
                 )
+            await asyncio.sleep(1.0)    
             open_orders = await self.get_open_orders()
             for cl_order_id, tracked_order in self._in_flight_orders.items():
                 open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
