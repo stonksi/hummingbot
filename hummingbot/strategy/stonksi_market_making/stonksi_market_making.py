@@ -92,6 +92,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._last_vol_reported = 0.
         self._hb_app_notification = hb_app_notification
         #self._order_overhaul_countdown = random.uniform(7.0, 13.0)
+        self._trading_pairs_to_redo = []
 
         self.add_markets([exchange])
 
@@ -116,7 +117,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.create_budget_allocation()
                 self._ready_to_trade = True
 
-        time.sleep(random.uniform(0.0, 0.3))
+        time.sleep(random.uniform(0.0, 0.2))
         #self.update_mid_prices()
         #self.update_volatility()
         proposals = self.create_base_proposals()
@@ -413,6 +414,7 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         return True
 
     def cancel_active_orders(self, proposals: List[Proposal]):
+        self._trading_pairs_to_redo = []
         for proposal in proposals:
             to_cancel = False
             cur_orders = [o for o in self.active_orders if o.trading_pair == proposal.market]
@@ -423,14 +425,29 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 to_cancel = True
             if to_cancel:
                 for order in cur_orders:
-                    self.cancel_order(self._market_infos[proposal.market], order.client_order_id)
-                    # To place new order on the next tick
-                    self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
+                    if order.trading_pair not in self._trading_pairs_to_redo:
+                        self._trading_pairs_to_redo.append(order.trading_pair)
+                        self._exchange.cancel_trading_pair(order.trading_pair)
+                        # To place new order on the next tick               
+                        self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
+        #for proposal in proposals:
+        #    to_cancel = False
+        #    cur_orders = [o for o in self.active_orders if o.trading_pair == proposal.market]
+        #    if cur_orders and any(self.order_age(o) > self._max_order_age for o in cur_orders):
+        #        to_cancel = True
+        #    elif self._refresh_times[proposal.market] <= self.current_timestamp and \
+        #            cur_orders and not self.is_within_tolerance(cur_orders, proposal):
+        #        to_cancel = True
+        #    if to_cancel:
+        #        for order in cur_orders:
+        #            self.cancel_order(self._market_infos[proposal.market], order.client_order_id)
+        #            # To place new order on the next tick
+        #            self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
 
     def execute_orders_proposal(self, proposals: List[Proposal]):
         for proposal in proposals:
-            cur_orders = [o for o in self.active_orders if o.trading_pair == proposal.market]
-            if cur_orders or self._refresh_times[proposal.market] > self.current_timestamp:
+            if proposal.market not in self._trading_pairs_to_redo or
+               self._refresh_times[proposal.market] > self.current_timestamp:
                 continue
             mid_price = self._market_infos[proposal.market].get_mid_price()
             spread = s_decimal_zero
@@ -457,12 +474,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                     price=proposal.sell.price
                 )
             if proposal.buy.size > 0 or proposal.sell.size > 0:
-            #    if not self._volatility[proposal.market].is_nan() and spread > self._spread:
-            #        adjusted_vol = self._volatility[proposal.market] * self._volatility_to_spread_multiplier
-            #        if adjusted_vol > self._spread:
-            #            self.logger().info(f"({proposal.market}) Spread is widened to {spread:.2%} due to high "
-            #                               f"market volatility")
-
                 self._refresh_times[proposal.market] = self.current_timestamp + self._order_refresh_time
 
     def is_token_a_quote_token(self):
