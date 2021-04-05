@@ -188,10 +188,6 @@ class HistoryCommand:
             ["Fees                    ", f"{smart_round(-fee_amount, precision)} {fee_token}"]
             for fee_token, fee_amount in perf.fees.items()
         )
-        perf_data.extend(
-            [["Total P&L (w/o refund)  ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
-             ["----------------------  ", "----------------------"]]
-        )
         if is_cro:
             perf_data.extend(
                 [["Total P&L (w/o refund)  ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
