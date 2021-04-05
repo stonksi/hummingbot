@@ -170,13 +170,14 @@ class HistoryCommand:
             lines.extend(["", "  Assets:"] + ["    " + line for line in assets_df.to_string(index=False).split("\n")])
 
         # Fix for staking discount on Crypto.com
-        cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
-        quote_refund = cro_refund
-
-        if (quote == "USDT" or quote == "USDC"):
-            quote_refund *= Decimal(0.2)
-        elif (quote == "BTC"):
-            quote_refund *= Decimal(0.0000035)
+        is_cro = "CRO" in perf.fees
+        if (is_cro):
+            cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
+            quote_refund = cro_refund
+            if (quote == "USDT" or quote == "USDC"):
+                quote_refund *= Decimal(0.21)
+            elif (quote == "BTC"):
+                quote_refund *= Decimal(0.0000035)
 
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
@@ -189,10 +190,22 @@ class HistoryCommand:
         )
         perf_data.extend(
             [["Total P&L (w/o refund)  ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
-             ["----------------------  ", "----------------------"],
-             ["CRO fee refund          ", f"{smart_round(cro_refund, precision)} CRO"],  
-             ["Calc P&L (with refund)  ", f"{smart_round((perf.total_pnl + quote_refund), precision)} {quote}"]]
+             ["----------------------  ", "----------------------"]]
         )
+        if is_cro:
+            perf_data.extend(
+                [["Total P&L (w/o refund)  ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
+                 ["----------------------  ", "----------------------"],
+                 ["CRO fee refund          ", f"{smart_round(cro_refund, precision)} CRO"],  
+                 ["Calc P&L (with refund)  ", f"{smart_round((perf.total_pnl + quote_refund), precision)} {quote}"]]
+            )
+        else:
+            perf_data.extend(
+                [["Total P&L               ", f"{smart_round(perf.total_pnl, precision)} {quote}"],
+                 ["Return %                ", f"{perf.return_pct:.2%}"]]
+            )
+
+
         perf_df: pd.DataFrame = pd.DataFrame(data=perf_data)
         lines.extend(["", "  Performance:"] +
                      ["    " + line for line in perf_df.to_string(index=False, header=False).split("\n")])
