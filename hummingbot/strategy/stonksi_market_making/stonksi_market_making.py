@@ -12,6 +12,7 @@ from hummingbot.core.clock import Clock
 from hummingbot.logger import HummingbotLogger
 from hummingbot.strategy.strategy_py_base import StrategyPyBase
 from hummingbot.connector.exchange_base import ExchangeBase
+from hummingbot.connector.exchange.crypto_com.crypto_com_exchange import CryptoComExchange
 from hummingbot.strategy.market_trading_pair_tuple import MarketTradingPairTuple
 from .data_types import Proposal, PriceSize
 from hummingbot.core.event.events import OrderType, TradeType
@@ -21,7 +22,6 @@ from hummingbot.core.utils.market_price import usd_value
 from hummingbot.strategy.pure_market_making.inventory_skew_calculator import (
     calculate_bid_ask_ratios_from_base_asset_ratio
 )
-#from hummingbot.connector.parrot import get_campaign_summary
 NaN = float("nan")
 s_decimal_zero = Decimal(0)
 s_decimal_nan = Decimal("NaN")
@@ -48,9 +48,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                  inventory_range_multiplier: Decimal = Decimal("1"),
                  order_refresh_time: float = 10.,
                  order_refresh_tolerance_pct: Decimal = Decimal("0.2"),
-                 #volatility_interval: int = 60 * 5,
-                 #avg_volatility_period: int = 10,
-                 #volatility_to_spread_multiplier: Decimal = Decimal("1"),
                  max_spread: Decimal = Decimal("-1"),
                  max_order_age: float = 60. * 60.,
                  order_optimization_enabled: bool = False,
@@ -70,9 +67,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._inventory_skew_enabled = inventory_skew_enabled
         self._inventory_target_base_pct = inventory_target_base_pct
         self._inventory_range_multiplier = inventory_range_multiplier
-        #self._volatility_interval = volatility_interval
-        #self._avg_volatility_period = avg_volatility_period
-        #self._volatility_to_spread_multiplier = volatility_to_spread_multiplier
         self._max_spread = max_spread
         self._max_order_age = max_order_age
         self._order_optimization_enabled = order_optimization_enabled
@@ -87,12 +81,10 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self._token_balances = {}
         self._sell_budgets = {}
         self._buy_budgets = {}
-        #self._mid_prices = {market: [] for market in market_infos}
-        #self._volatility = {market: s_decimal_nan for market in self._market_infos}
         self._last_vol_reported = 0.
         self._hb_app_notification = hb_app_notification
-        #self._order_overhaul_countdown = random.uniform(7.0, 13.0)
         self._trading_pairs_to_redo = []
+        self._is_crypto_com = isinstance(self._exchange, CryptoComExchange)
 
         self.add_markets([exchange])
 
@@ -117,9 +109,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self.create_budget_allocation()
                 self._ready_to_trade = True
 
-        #time.sleep(random.uniform(0.0, 0.2))
-        #self.update_mid_prices()
-        #self.update_volatility()
         proposals = self.create_base_proposals()
         self._token_balances = self.adjusted_available_balances()
         if self._order_optimization_enabled:
@@ -131,18 +120,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         self.execute_orders_proposal(proposals)
 
         self._last_timestamp = timestamp
-
-        #if (self._order_overhaul_countdown < 1):
-        #    self._order_overhaul_countdown = random.uniform(100.0, 140.0)
-        #    open_orders = safe_gather(self._exchange.get_open_orders())
-        #    for cl_order_id, tracked_order in self._exchange.in_flight_orders.items():
-        #        open_order = [o for o in open_orders if o.client_order_id == cl_order_id]
-        #        if not open_order:
-        #            self._exchange.trigger_event(MarketEvent.OrderCancelled,
-        #                               OrderCancelledEvent(self.current_timestamp, cl_order_id))
-        #            self._exchange.stop_tracking_order(cl_order_id)
-        #else:
-        #    self._order_overhaul_countdown -= 1
 
     @staticmethod
     def order_age(order: LimitOrder) -> float:
@@ -271,10 +248,14 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         time.sleep(1.0)
         restored_orders = self._exchange.limit_orders
         cancelled_pairs = []
-        for order in restored_orders:
-            if order.trading_pair not in cancelled_pairs:
-                cancelled_pairs.append(order.trading_pair)
-                self._exchange.cancel_trading_pair(order.trading_pair)
+        if self._is_crypto_com:
+            for order in restored_orders:
+                if order.trading_pair not in cancelled_pairs:
+                    cancelled_pairs.append(order.trading_pair)
+                    self._exchange.cancel_trading_pair(order.trading_pair)
+        else:
+            for order in restored_orders:
+                self._exchange.cancel(order.trading_pair, order.client_order_id)
 
     def stop(self, clock: Clock):
         pass
@@ -283,9 +264,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
         proposals = []
         for market, market_info in self._market_infos.items():
             spread = self._spread
-            #if not self._volatility[market].is_nan():
-                # volatility applies only when it is higher than the spread setting.
-                #spread = max(spread, self._volatility[market] * self._volatility_to_spread_multiplier)
             if self._max_spread > s_decimal_zero:
                 spread = min(spread, self._max_spread)
             mid_price = market_info.get_mid_price()
@@ -426,25 +404,18 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                     cur_orders and not self.is_within_tolerance(cur_orders, proposal):
                 to_cancel = True
             if to_cancel:
-                for order in cur_orders:
-                    if order.trading_pair not in self._trading_pairs_to_redo:
-                        self._trading_pairs_to_redo.append(order.trading_pair)
-                        self._exchange.cancel_trading_pair(order.trading_pair)
+                if self._is_crypto_com:
+                    for order in cur_orders:
+                        if order.trading_pair not in self._trading_pairs_to_redo:
+                            self._trading_pairs_to_redo.append(order.trading_pair)
+                            self._exchange.cancel_trading_pair(order.trading_pair)
+                            # To place new order on the next tick               
+                            self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
+                else:
+                    for order in cur_orders:
+                        self.cancel_order(self._market_infos[proposal.market], order.client_order_id)
                         # To place new order on the next tick               
                         self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
-        #for proposal in proposals:
-        #    to_cancel = False
-        #    cur_orders = [o for o in self.active_orders if o.trading_pair == proposal.market]
-        #    if cur_orders and any(self.order_age(o) > self._max_order_age for o in cur_orders):
-        #        to_cancel = True
-        #    elif self._refresh_times[proposal.market] <= self.current_timestamp and \
-        #            cur_orders and not self.is_within_tolerance(cur_orders, proposal):
-        #        to_cancel = True
-        #    if to_cancel:
-        #        for order in cur_orders:
-        #            self.cancel_order(self._market_infos[proposal.market], order.client_order_id)
-        #            # To place new order on the next tick
-        #            self._refresh_times[order.trading_pair] = self.current_timestamp + 0.1
 
     def execute_orders_proposal(self, proposals: List[Proposal]):
         for proposal in proposals:
@@ -560,33 +531,6 @@ class StonksiMarketMakingStrategy(StrategyPyBase):
                 self._sell_budgets[market_info.trading_pair] -= event.amount
                 self._buy_budgets[market_info.trading_pair] += (event.amount * event.price)
 
-    #def update_mid_prices(self):
-    #    for market in self._market_infos:
-    #        mid_price = self._market_infos[market].get_mid_price()
-    #        self._mid_prices[market].append(mid_price)
-    #        # To avoid memory leak, we store only the last part of the list needed for volatility calculation
-    #        max_len = self._volatility_interval * self._avg_volatility_period
-    #        self._mid_prices[market] = self._mid_prices[market][-1 * max_len:]
-
-    #def update_volatility(self):
-    #    self._volatility = {market: s_decimal_nan for market in self._market_infos}
-    #    for market, mid_prices in self._mid_prices.items():
-    #        last_index = len(mid_prices) - 1
-    #        atr = []
-    #        first_index = last_index - (self._volatility_interval * self._avg_volatility_period)
-    #        first_index = max(first_index, 0)
-    #        for i in range(last_index, first_index, self._volatility_interval * -1):
-    #            prices = mid_prices[i - self._volatility_interval + 1: i + 1]
-    #            if not prices:
-    #                break
-    #            atr.append((max(prices) - min(prices)) / min(prices))
-    #        if atr:
-    #            self._volatility[market] = mean(atr)
-    #    if self._last_vol_reported < self.current_timestamp - self._volatility_interval:
-    #        for market, vol in self._volatility.items():
-    #            if not vol.is_nan():
-    #                self.logger().info(f"{market} volatility: {vol:.2%}")
-    #        self._last_vol_reported = self.current_timestamp
 
     def notify_hb_app(self, msg: str):
         if self._hb_app_notification:
