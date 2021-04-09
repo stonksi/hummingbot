@@ -156,10 +156,10 @@ class CryptoComExchange(ExchangeBase):
         when it disconnects.
         :param saved_states: The saved tracking_states.
         """
-        self._in_flight_orders.update({
-            key: CryptoComInFlightOrder.from_json(value)
-            for key, value in saved_states.items()
-        })
+        #self._in_flight_orders.update({
+        #    key: CryptoComInFlightOrder.from_json(value)
+        #    for key, value in saved_states.items()
+        #})
 
     def supported_order_types(self) -> List[OrderType]:
         """
