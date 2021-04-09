@@ -443,6 +443,7 @@ class CryptoComExchange(ExchangeBase):
         """
         Cancels all orders for a trading pair
         """
+        await asyncio.sleep(random.choice([0, 1])) # Helps avoid Status 500 errors
         try:
             await self._api_request(
                 "post",
