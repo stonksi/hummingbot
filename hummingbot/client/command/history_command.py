@@ -175,9 +175,9 @@ class HistoryCommand:
             cro_refund = (perf.fees.get("CRO") * Decimal(0.6))
             quote_refund = cro_refund
             if (quote == "USDT" or quote == "USDC"):
-                quote_refund *= Decimal(0.21)
+                quote_refund *= Decimal(0.12)
             elif (quote == "BTC"):
-                quote_refund *= Decimal(0.0000035)
+                quote_refund *= Decimal(0.0000032)
 
         perf_data = [
             ["Hold portfolio value    ", f"{smart_round(perf.hold_value, precision)} {quote}"],
