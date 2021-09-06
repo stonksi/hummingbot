@@ -312,6 +312,19 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, min_value=0),
                   default=0),
+    "order_optimization_failsafe_enabled":
+        ConfigVar(key="order_optimization_failsafe_enabled",
+                  prompt="Do you want to enable order optimization fail safe? (Yes/No) >>> ",
+                  required_if=lambda: pure_market_making_config_map.get("order_optimization_enabled").value,
+                  type_str="bool",
+                  default=True,
+                  validator=validate_bool),
+    "inventory_max_available_base_balance":
+        ConfigVar(key="inventory_max_available_base_balance",
+                  prompt="Set max available balance for base asset? (-1 = disabled) >>> ",
+                  type_str="decimal",
+                  validator=lambda v: validate_decimal(v, -1, inclusive=True),
+                  default=-1),
     "add_transaction_costs":
         ConfigVar(key="add_transaction_costs",
                   prompt="Do you want to add transaction costs automatically to order prices? (Yes/No) >>> ",

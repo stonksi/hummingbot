@@ -30,6 +30,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         bint _order_optimization_enabled
         object _ask_order_optimization_depth
         object _bid_order_optimization_depth
+        bint _order_optimization_failsafe_enabled
+        object _inventory_max_available_base_balance
         bint _add_transaction_costs_to_orders
         object _asset_price_delegate
         object _inventory_cost_price_delegate

@@ -35,6 +35,7 @@ cdef class MarketBase(NetworkIterator):
     cdef object c_quantize_order_amount(self, str trading_pair, object amount, object price=*)
     cdef ClientOrderBookQueryResult c_get_quote_volume_for_base_amount(self, str trading_pair, bint is_buy, object base_amount)
     cdef ClientOrderBookQueryResult c_get_volume_for_price(self, str trading_pair, bint is_buy, object price)
+    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price)
     cdef ClientOrderBookQueryResult c_get_quote_volume_for_price(self, str trading_pair, bint is_buy, object price)
     cdef ClientOrderBookQueryResult c_get_vwap_for_volume(self, str trading_pair, bint is_buy, object volume)
     cdef ClientOrderBookQueryResult c_get_price_for_volume(self, str trading_pair, bint is_buy, object volume)

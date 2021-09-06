@@ -82,6 +82,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     order_optimization_enabled: bool = False,
                     ask_order_optimization_depth: Decimal = s_decimal_zero,
                     bid_order_optimization_depth: Decimal = s_decimal_zero,
+                    order_optimization_failsafe_enabled: bool = True,
+                    inventory_max_available_base_balance: Decimal = s_decimal_neg_one,
                     add_transaction_costs_to_orders: bool = False,
                     asset_price_delegate: AssetPriceDelegate = None,
                     inventory_cost_price_delegate: InventoryCostPriceDelegate = None,
@@ -121,6 +123,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._order_optimization_enabled = order_optimization_enabled
         self._ask_order_optimization_depth = ask_order_optimization_depth
         self._bid_order_optimization_depth = bid_order_optimization_depth
+        self._order_optimization_failsafe_enabled = order_optimization_failsafe_enabled
+        self._inventory_max_available_base_balance = inventory_max_available_base_balance
         self._add_transaction_costs_to_orders = add_transaction_costs_to_orders
         self._asset_price_delegate = asset_price_delegate
         self._inventory_cost_price_delegate = inventory_cost_price_delegate
@@ -176,6 +180,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def bid_order_optimization_depth(self) -> Decimal:
         return self._bid_order_optimization_depth
+
+    @property
+    def order_optimization_failsafe_enabled(self) -> bool:
+        return self._order_optimization_failsafe_enabled
+
+    @property
+    def inventory_max_available_base_balance(self) -> Decimal:
+        return self._inventory_max_available_base_balance
 
     @property
     def price_type(self) -> PriceType:
@@ -773,6 +785,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object base_balance = market.c_get_available_balance(self.base_asset)
             object quote_balance = market.c_get_available_balance(self.quote_asset)
 
+        ##### Added code for max available base balance #####
+        if 0 <= self._inventory_max_available_base_balance < base_balance:
+            base_balance = self._inventory_max_available_base_balance
+        ##### End new code #####
+
         for order in orders:
             if order.is_buy:
                 quote_balance += order.quantity * order.price
@@ -929,7 +946,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
             proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
-            lower_buy_price = min(proposal.buys[0].price, price_above_bid)
+            # lower_buy_price = min(proposal.buys[0].price, price_above_bid)
+            #
+            ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
+            lower_buy_price = proposal.buys[0].price
+            if price_above_bid < lower_buy_price:
+                lower_buy_price = price_above_bid
+            elif self._order_optimization_failsafe_enabled:
+                next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
+                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
+            ##### End new code #####
+
             for i, proposed in enumerate(proposal.buys):
                 proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
 
@@ -947,7 +975,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
             proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
-            higher_sell_price = max(proposal.sells[0].price, price_below_ask)
+            # higher_sell_price = max(proposal.sells[0].price, price_below_ask)
+            #
+            ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
+            higher_sell_price = proposal.sells[0].price
+            if price_below_ask > higher_sell_price:
+                higher_sell_price = price_below_ask
+            elif self._order_optimization_failsafe_enabled:
+                next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
+                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
+            ##### End new code #####
+
             for i, proposed in enumerate(proposal.sells):
                 proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price) * (1 + self.order_level_spread * i)
 
