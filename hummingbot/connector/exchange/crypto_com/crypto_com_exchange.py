@@ -633,15 +633,33 @@ class CryptoComExchange(ExchangeBase):
         if current_tick > last_tick and len(self._in_flight_orders) > 0:
             tracked_orders = list(self._in_flight_orders.values())
             tasks = []
-            for tracked_order in tracked_orders:
-                order_id = await tracked_order.get_exchange_order_id()
-                tasks.append(self._api_request("post",
-                                               CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
-                                               {"order_id": order_id},
-                                               True))
+            #for tracked_order in tracked_orders:
+            #    order_id = await tracked_order.get_exchange_order_id()
+            #    tasks.append(self._api_request("post",
+            #                                   CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
+            #                                   {"order_id": order_id},
+            #                                   True))
+            #self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
+            #responses = await safe_gather(*tasks, return_exceptions=True)
+            #for response in responses:
+            #    if isinstance(response, Exception):
+            #        raise response
+            #    if "result" not in response:
+            #        self.logger().info(f"_update_order_status result not in resp: {response}")
+            #        continue
+            #    result = response["result"]
+            #    if "trade_list" in result:
+            #        for trade_msg in result["trade_list"]:
+            #            await self._process_trade_message(trade_msg)
+            #    self._process_order_message(result["order_info"])
+            # 
             self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
-            responses = await safe_gather(*tasks, return_exceptions=True)
-            for response in responses:
+            for tracked_order in tracked_orders:
+                await asyncio.sleep(0.1)
+                order_id = await tracked_order.get_exchange_order_id()
+                response = await self._api_request("post", CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
+                                                       {"order_id": order_id},
+                                                       True)
                 if isinstance(response, Exception):
                     raise response
                 if "result" not in response:
