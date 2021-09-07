@@ -212,6 +212,9 @@ cdef class MarketBase(NetworkIterator):
 
     cdef c_cancel(self, str trading_pair, str client_order_id):
         raise NotImplementedError
+    
+    cdef c_cancel_all_orders(self, str trading_pair):
+        raise NotImplementedError
 
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
@@ -450,6 +453,9 @@ cdef class MarketBase(NetworkIterator):
 
     def cancel(self, trading_pair: str, client_order_id: str):
         return self.c_cancel(trading_pair, client_order_id)
+    
+    def cancel_all_orders(self, trading_pair: str):
+        return self.c_cancel_all_orders(trading_pair)
 
     def get_available_balance(self, currency: str) -> Decimal:
         return self.c_get_available_balance(currency)

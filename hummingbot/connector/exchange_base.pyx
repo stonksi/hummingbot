@@ -76,6 +76,9 @@ cdef class ExchangeBase(ConnectorBase):
 
     cdef c_cancel(self, str trading_pair, str client_order_id):
         return self.cancel(trading_pair, client_order_id)
+    
+    cdef c_cancel_all_orders(self, str trading_pair):
+        return self.cancel_all_orders(trading_pair)
 
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
@@ -225,6 +228,9 @@ cdef class ExchangeBase(ConnectorBase):
         raise NotImplementedError
 
     def cancel(self, trading_pair: str, client_order_id: str):
+        raise NotImplementedError
+    
+    def cancel_all_orders(self, trading_pair: str):
         raise NotImplementedError
 
     def get_order_book(self, trading_pair: str) -> OrderBook:

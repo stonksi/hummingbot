@@ -407,6 +407,15 @@ class CryptoComExchange(ExchangeBase):
         """
         safe_ensure_future(self._execute_cancel(trading_pair, order_id))
         return order_id
+    
+    def cancel_all_orders(self, trading_pair: str):
+        """
+        Cancel all orders for a trading pair. This function returns immediately.
+        To get the cancellation result, you'll have to wait for OrderCancelledEvent.
+        :param trading_pair: The market (e.g. BTC-USDT) of the order.
+        """
+        safe_ensure_future(self._execute_cancel_all_orders(trading_pair))
+        return trading_pair
 
     async def _create_order(self,
                             trade_type: TradeType,
@@ -542,6 +551,31 @@ class CryptoComExchange(ExchangeBase):
                 f"Failed to cancel order {order_id}: {str(e)}",
                 exc_info=True,
                 app_warning_msg=f"Failed to cancel the order {order_id} on CryptoCom. "
+                                f"Check API key and network connection."
+            )
+
+    async def _execute_cancel_all_orders(self, trading_pair: str) -> str:
+        """
+        Executes order cancellation process by first calling cancel-all-orders API. The API result doesn't confirm whether
+        the cancellation is successful, it simply states it receives the request.
+        :param trading_pair: The market trading pair
+        order.last_state to change to CANCELED
+        """
+        try:
+            await self._api_request(
+                "post",
+                CONSTANTS.CANCEL_ALL_ORDERS_PATH_URL,
+                {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
+                True
+            )
+            return trading_pair
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            self.logger().network(
+                f"Failed to cancel all orders for {trading_pair}: {str(e)}",
+                exc_info=True,
+                app_warning_msg=f"Failed to cancel all orders for {trading_pair} on CryptoCom. "
                                 f"Check API key and network connection."
             )
 
