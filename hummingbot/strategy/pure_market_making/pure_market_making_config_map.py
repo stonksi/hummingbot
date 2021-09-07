@@ -319,9 +319,9 @@ pure_market_making_config_map = {
                   type_str="bool",
                   default=True,
                   validator=validate_bool),
-    "inventory_max_available_base_balance":
-        ConfigVar(key="inventory_max_available_base_balance",
-                  prompt="Set max available balance for base asset? (-1 = disabled) >>> ",
+    "inventory_max_available_quote_balance":
+        ConfigVar(key="inventory_max_available_quote_balance",
+                  prompt="Set max available balance for quote asset? (-1 = disabled) >>> ",
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, -1, inclusive=True),
                   default=-1),

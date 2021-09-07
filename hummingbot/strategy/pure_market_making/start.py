@@ -44,7 +44,7 @@ def start(self):
         ask_order_optimization_depth = c_map.get("ask_order_optimization_depth").value
         bid_order_optimization_depth = c_map.get("bid_order_optimization_depth").value
         order_optimization_failsafe_enabled = c_map.get("order_optimization_failsafe_enabled").value
-        inventory_max_available_base_balance = c_map.get("inventory_max_available_base_balance").value
+        inventory_max_available_quote_balance = c_map.get("inventory_max_available_quote_balance").value
         add_transaction_costs_to_orders = c_map.get("add_transaction_costs").value
         price_source = c_map.get("price_source").value
         price_type = c_map.get("price_type").value
@@ -100,7 +100,7 @@ def start(self):
             ask_order_optimization_depth=ask_order_optimization_depth,
             bid_order_optimization_depth=bid_order_optimization_depth,
             order_optimization_failsafe_enabled=order_optimization_failsafe_enabled,
-            inventory_max_available_base_balance=inventory_max_available_base_balance,
+            inventory_max_available_quote_balance=inventory_max_available_quote_balance,
             add_transaction_costs_to_orders=add_transaction_costs_to_orders,
             logging_options=strategy_logging_options,
             asset_price_delegate=asset_price_delegate,

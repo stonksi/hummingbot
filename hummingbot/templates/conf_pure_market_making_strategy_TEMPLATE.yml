@@ -94,8 +94,8 @@ bid_order_optimization_depth: null
 # Use failsafe price (one above/below next price) when optimization cannot put order on top/bottom of order book (true/false).
 order_optimization_failsafe_enabled: null
 
-# Max base balance available to trading bot? (-1 = disabled)
-inventory_max_available_base_balance: null
+# Max quote balance available to trading bot? (-1 = disabled)
+inventory_max_available_quote_balance: null
 
 # Whether to enable adding transaction costs to order price calculation (true/false).
 add_transaction_costs: null
