@@ -189,8 +189,9 @@ class CryptoComExchange(ExchangeBase):
         updating statuses and tracking user data.
         """
         self._order_book_tracker.start()
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(uniform(1,2))
         self._trading_rules_polling_task = safe_ensure_future(self._trading_rules_polling_loop())
+        await asyncio.sleep(uniform(1,2))
         if self._trading_required:
             self._status_polling_task = safe_ensure_future(self._status_polling_loop())
             self._user_stream_tracker_task = safe_ensure_future(self._user_stream_tracker.start())
@@ -245,8 +246,9 @@ class CryptoComExchange(ExchangeBase):
         """
         while True:
             try:
+                await asyncio.sleep(uniform(0.3,0.6))
                 await self._update_trading_rules()
-                await asyncio.sleep(60)
+                await asyncio.sleep(uniform(50,70))
             except asyncio.CancelledError:
                 raise
             except Exception as e:
@@ -611,7 +613,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        await asyncio.sleep(uniform(0,0.5))
+        await asyncio.sleep(uniform(0.3,0.6))
         account_info = await self._api_request("post", CONSTANTS.GET_ACCOUNT_SUMMARY_PATH_URL, {}, True)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
@@ -656,7 +658,7 @@ class CryptoComExchange(ExchangeBase):
             # 
             self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
             for tracked_order in tracked_orders:
-                await asyncio.sleep(uniform(0,0.2))
+                await asyncio.sleep(uniform(0.1,0.3))
                 order_id = await tracked_order.get_exchange_order_id()
                 response = await self._api_request("post", CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
                                                        {"order_id": order_id},
