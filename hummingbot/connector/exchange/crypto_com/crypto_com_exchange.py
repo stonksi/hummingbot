@@ -611,6 +611,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
+        await asyncio.sleep(uniform(0,0.5))
         account_info = await self._api_request("post", CONSTANTS.GET_ACCOUNT_SUMMARY_PATH_URL, {}, True)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
@@ -655,7 +656,7 @@ class CryptoComExchange(ExchangeBase):
             # 
             self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
             for tracked_order in tracked_orders:
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(uniform(0,0.2))
                 order_id = await tracked_order.get_exchange_order_id()
                 response = await self._api_request("post", CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
                                                        {"order_id": order_id},
