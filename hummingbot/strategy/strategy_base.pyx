@@ -151,8 +151,8 @@ cdef class StrategyBase(TimeIterator):
 
     def log_with_clock(self, log_level: int, msg: str, **kwargs):
         clock_timestamp = pd.Timestamp(self._current_timestamp, unit="s", tz="UTC")
-        clock_timestamp = clock_timestamp.round(freq='100L')
-        self.logger().log(log_level, f"{msg} [clock={str(clock_timestamp)}]", **kwargs)
+        clock_str = str(clock_timestamp)
+        self.logger().log(log_level, f"{msg} [clock={clock_str[:-4]}]", **kwargs)
 
     @property
     def trades(self) -> List[Trade]:
@@ -601,8 +601,8 @@ cdef class StrategyBase(TimeIterator):
         :param msg: The message to be notified
         """
         timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
-        timestamp = timestamp.round(freq='100L')
-        self.notify_hb_app(f"({timestamp}) {msg}")
+        ts_str = str(timestamp)
+        self.notify_hb_app(f"({ts_str[:-4]}) {msg}")
 
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>
