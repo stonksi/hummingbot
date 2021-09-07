@@ -372,7 +372,7 @@ cdef class MarketBase(NetworkIterator):
                                           result_price,
                                           result_volume)
 
-  cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price):
+    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_next_price(is_buy, float(price))
