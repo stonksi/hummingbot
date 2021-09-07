@@ -2,6 +2,7 @@ from decimal import Decimal
 import logging
 import pandas as pd
 import numpy as np
+from random import randrange
 from typing import (
     List,
     Dict,
@@ -698,6 +699,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 if not all([market.network_status is NetworkStatus.CONNECTED for market in self._sb_markets]):
                     self.logger().warning(f"WARNING: Some markets are not connected or are down at the moment. Market "
                                           f"making may be dangerous when markets or networks are unstable.")
+           
+            ##### Slight hack to make 1/100 ticks skip completely. This is to randomly offset bots ever so slightly in order to avoid hitting API limits. #####
+            if randrange(1,100) == 1:
+                return
+            ##### End hack #####
 
             proposal = None
             asset_mid_price = Decimal("0")
