@@ -7,6 +7,7 @@ from typing import (
     AsyncIterable,
 )
 from decimal import Decimal
+from random import uniform
 import asyncio
 import json
 import aiohttp
@@ -54,9 +55,9 @@ class CryptoComExchange(ExchangeBase):
     trading functionality.
     """
     API_CALL_TIMEOUT = 10.0
-    SHORT_POLL_INTERVAL = 5.0
-    UPDATE_ORDER_STATUS_MIN_INTERVAL = 10.0
-    LONG_POLL_INTERVAL = 120.0
+    SHORT_POLL_INTERVAL = uniform(4,6)
+    UPDATE_ORDER_STATUS_MIN_INTERVAL = uniform(8,12)
+    LONG_POLL_INTERVAL = uniform(110,130)
 
     @classmethod
     def logger(cls) -> HummingbotLogger:
