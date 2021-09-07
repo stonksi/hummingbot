@@ -599,7 +599,7 @@ cdef class StrategyBase(TimeIterator):
         This implementation adds the timestamp as the first element of the notification
         :param msg: The message to be notified
         """
-        timestamp = pd.Timestamp.fromtimestamp(round(self._current_timestamp, 3))
+        timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
         self.notify_hb_app(f"({timestamp}) {msg}")
 
     # ----------------------------------------------------------------------------------------------------------
