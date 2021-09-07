@@ -522,8 +522,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         market, trading_pair, base_asset, quote_asset = self._market_info
         price = self._market_info.get_mid_price()
         base_balance = float(market.get_balance(base_asset))
+        ##### Added code for max available base balance #####
+        if 0 <= self._inventory_max_available_base_balance < base_balance:
+            base_balance = self._inventory_max_available_base_balance
+        ##### End new code #####
         quote_balance = float(market.get_balance(quote_asset))
         available_base_balance = float(market.get_available_balance(base_asset))
+        ##### Added code for max available base balance #####
+        if 0 <= self._inventory_max_available_base_balance < available_base_balance:
+            available_base_balance = self._inventory_max_available_base_balance
+        ##### End new code #####
         available_quote_balance = float(market.get_available_balance(quote_asset))
         base_value = base_balance * float(price)
         total_in_quote = base_value + quote_balance
@@ -732,6 +740,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 sell_reference_price = max(inventory_cost_price, sell_reference_price)
             else:
                 base_balance = float(market.get_balance(self._market_info.base_asset))
+                ##### Added code for max available base balance #####
+                if 0 <= self._inventory_max_available_base_balance < base_balance:
+                    base_balance = self._inventory_max_available_base_balance
+                ##### End new code #####
                 if base_balance > 0:
                     raise RuntimeError("Initial inventory price is not set while inventory_cost feature is active.")
 
