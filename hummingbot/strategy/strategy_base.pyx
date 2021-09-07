@@ -151,7 +151,7 @@ cdef class StrategyBase(TimeIterator):
 
     def log_with_clock(self, log_level: int, msg: str, **kwargs):
         clock_timestamp = pd.Timestamp(self._current_timestamp, unit="s", tz="UTC")
-        clock_str = clock_timestamp.strftime('%Y-%m-%d %X:%f')
+        clock_str = clock_timestamp.strftime('%Y-%m-%d %X.%f')
         self.logger().log(log_level, f"{msg} [clock={clock_str[:-4]}]", **kwargs)
 
     @property
@@ -601,7 +601,7 @@ cdef class StrategyBase(TimeIterator):
         :param msg: The message to be notified
         """
         timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
-        ts_str = timestamp.strftime('%Y-%m-%d %X:%f')
+        ts_str = timestamp.strftime('%Y-%m-%d %X.%f')
         self.notify_hb_app(f"({ts_str[:-4]}) {msg}")
 
     # ----------------------------------------------------------------------------------------------------------
