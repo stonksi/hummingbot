@@ -1282,14 +1282,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             bint orders_created = False
 
         if len(proposal.buys) > 0:
-            if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
-                price_quote_str = [f"{buy.size.normalize()} {self.base_asset}, "
-                                   f"{buy.price.normalize()} {self.quote_asset}"
-                                   for buy in proposal.buys]
-                self.logger().info(
-                    f"({self.trading_pair}) Creating {len(proposal.buys)} bid orders "
-                    f"at (Size, Price): {price_quote_str}"
-                )
+            #if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
+            #    price_quote_str = [f"{buy.size.normalize()} {self.base_asset}, "
+            #                       f"{buy.price.normalize()} {self.quote_asset}"
+            #                       for buy in proposal.buys]
+            #    self.logger().info(
+            #        f"({self.trading_pair}) Creating {len(proposal.buys)} bid orders "
+            #        f"at (Size, Price): {price_quote_str}"
+            #    )
             for buy in proposal.buys:
                 bid_order_id = self.c_buy_with_specific_market(
                     self._market_info,
@@ -1300,14 +1300,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 )
                 orders_created = True
         if len(proposal.sells) > 0:
-            if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
-                price_quote_str = [f"{sell.size.normalize()} {self.base_asset}, "
-                                   f"{sell.price.normalize()} {self.quote_asset}"
-                                   for sell in proposal.sells]
-                self.logger().info(
-                    f"({self.trading_pair}) Creating {len(proposal.sells)} ask "
-                    f"orders at (Size, Price): {price_quote_str}"
-                )
+            #if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
+            #    price_quote_str = [f"{sell.size.normalize()} {self.base_asset}, "
+            #                       f"{sell.price.normalize()} {self.quote_asset}"
+            #                       for sell in proposal.sells]
+            #    self.logger().info(
+            #        f"({self.trading_pair}) Creating {len(proposal.sells)} ask "
+            #        f"orders at (Size, Price): {price_quote_str}"
+            #    )
             for sell in proposal.sells:
                 ask_order_id = self.c_sell_with_specific_market(
                     self._market_info,

@@ -464,8 +464,8 @@ class CryptoComExchange(ExchangeBase):
             exchange_order_id = str(order_result["result"]["order_id"])
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is not None:
-                self.logger().info(f"Created {order_type.name} {trade_type.name} order {order_id} for "
-                                   f"{amount} {trading_pair}.")
+                #self.logger().info(f"Created {order_type.name} {trade_type.name} order {order_id} for "
+                #                   f"{amount} {trading_pair}.")
                 tracked_order.update_exchange_order_id(exchange_order_id)
 
             event_tag = MarketEvent.BuyOrderCreated if trade_type is TradeType.BUY else MarketEvent.SellOrderCreated
@@ -663,7 +663,7 @@ class CryptoComExchange(ExchangeBase):
         # Update order execution status
         tracked_order.last_state = order_msg["status"]
         if tracked_order.is_cancelled:
-            self.logger().info(f"Successfully cancelled order {client_order_id}.")
+            #self.logger().info(f"Successfully cancelled order {client_order_id}.")
             self.trigger_event(MarketEvent.OrderCancelled,
                                OrderCancelledEvent(
                                    self.current_timestamp,
@@ -671,7 +671,7 @@ class CryptoComExchange(ExchangeBase):
             tracked_order.cancelled_event.set()
             self.stop_tracking_order(client_order_id)
         elif tracked_order.is_failure:
-            self.logger().info(f"The market order {client_order_id} has failed according to order status API. "
+            self.logger().info(f"The market order {client_order_id} has FAILED according to order API. "
                                f"Reason: {crypto_com_utils.get_api_reason(order_msg['reason'])}")
             self.trigger_event(MarketEvent.OrderFailure,
                                MarketOrderFailureEvent(
@@ -713,8 +713,7 @@ class CryptoComExchange(ExchangeBase):
                 tracked_order.executed_amount_base >= tracked_order.amount:
             tracked_order.last_state = "FILLED"
             self.logger().info(f"The {tracked_order.trade_type.name} order "
-                               f"{tracked_order.client_order_id} has completed "
-                               f"according to order status API.")
+                               f"{tracked_order.client_order_id} has COMPLETED according to order API.")
             event_tag = MarketEvent.BuyOrderCompleted if tracked_order.trade_type is TradeType.BUY \
                 else MarketEvent.SellOrderCompleted
             event_class = BuyOrderCompletedEvent if tracked_order.trade_type is TradeType.BUY \
