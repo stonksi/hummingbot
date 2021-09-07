@@ -961,8 +961,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if price_above_bid < lower_buy_price:
                 lower_buy_price = price_above_bid
             elif self._order_optimization_failsafe_enabled:
-                next_price = self._market_info.get_next_price(True, lower_buy_price).result_price
-                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
+                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
                 lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
             ##### End new code #####
 
@@ -990,8 +990,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if price_below_ask > higher_sell_price:
                 higher_sell_price = price_below_ask
             elif self._order_optimization_failsafe_enabled:
-                next_price = self._market_info.get_next_price(False, higher_sell_price).result_price
-                next_price_quantum = self._exchange.get_order_price_quantum(proposal.market, next_price)
+                next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
+                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
                 higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
             ##### End new code #####
 
