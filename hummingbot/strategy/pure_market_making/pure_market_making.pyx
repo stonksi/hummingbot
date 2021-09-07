@@ -524,14 +524,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         base_balance = float(market.get_balance(base_asset))
         quote_balance = float(market.get_balance(quote_asset))
         ##### Added code for max available base balance #####
-        if 0 <= self._inventory_max_available_quote_balance < quote_balance:
-            quote_balance = self._inventory_max_available_quote_balance
+        if 0 <= float(self._inventory_max_available_quote_balance) < quote_balance:
+            quote_balance = float(self._inventory_max_available_quote_balance)
         ##### End new code #####
         available_base_balance = float(market.get_available_balance(base_asset))      
         available_quote_balance = float(market.get_available_balance(quote_asset))
         ##### Added code for max available base balance #####
-        if 0 <= self._inventory_max_available_quote_balance < available_quote_balance:
-            available_quote_balance = self._inventory_max_available_quote_balance
+        if 0 <= float(self._inventory_max_available_quote_balance) < available_quote_balance:
+            available_quote_balance = float(self._inventory_max_available_quote_balance)
         ##### End new code #####
         base_value = base_balance * float(price)
         total_in_quote = base_value + quote_balance
