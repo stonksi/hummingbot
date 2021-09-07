@@ -744,16 +744,26 @@ class CryptoComExchange(ExchangeBase):
         cancellation_results = []
         try:
             tasks = []
+            trading_pairs = []
 
             for _, order in tracked_orders:
-                api_params = {
-                    "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
-                    "order_id": order.exchange_order_id,
-                }
-                tasks.append(self._api_request(method="post",
-                                               path_url=CONSTANTS.CANCEL_ORDER_PATH_URL,
-                                               params=api_params,
-                                               is_auth_required=True))
+                #api_params = {
+                #    "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
+                #    "order_id": order.exchange_order_id,
+                #}
+                #tasks.append(self._api_request(method="post",
+                #                               path_url=CONSTANTS.CANCEL_ORDER_PATH_URL,
+                #                               params=api_params,
+                #                               is_auth_required=True))
+                if order.trading_pair not in trading_pairs:
+                    trading_pairs.append(order.trading_pair)
+                    api_params = {
+                        "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
+                    }
+                    tasks.append(self._api_request(method="post",
+                                                   path_url=CONSTANTS.CANCEL_ALL_ORDERS_PATH_URL,
+                                                   params=api_params,
+                                                   is_auth_required=True))
 
             await safe_gather(*tasks)
 
