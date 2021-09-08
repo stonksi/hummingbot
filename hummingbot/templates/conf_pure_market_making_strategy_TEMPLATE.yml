@@ -41,6 +41,9 @@ order_refresh_tolerance_pct: null
 # Size of your bid and ask order.
 order_amount: null
 
+# Use quote asset for order amount instead of base asset (true/false).
+order_amount_use_quote: null
+
 # Price band ceiling.
 price_ceiling: null
 

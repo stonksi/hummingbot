@@ -68,6 +68,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     bid_spread: Decimal,
                     ask_spread: Decimal,
                     order_amount: Decimal,
+                    order_amount_use_quote: bool = False,
                     order_levels: int = 1,
                     order_level_spread: Decimal = s_decimal_zero,
                     order_level_amount: Decimal = s_decimal_zero,
@@ -107,6 +108,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._ask_spread = ask_spread
         self._minimum_spread = minimum_spread
         self._order_amount = order_amount
+        self._order_amount_use_quote = order_amount_use_quote
         self._order_levels = order_levels
         self._buy_levels = order_levels
         self._sell_levels = order_levels
@@ -169,6 +171,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def minimum_spread(self) -> Decimal:
         return self._minimum_spread
+
+    @property
+    def order_amount_use_quote(self) -> bool:
+        return self._order_amount_use_quote
 
     @property
     def ping_pong_enabled(self) -> bool:
@@ -704,6 +710,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if randrange(1,100) == 1:
                 return
             ##### End hack #####
+
+            ##### Added functionality to allow for order_amount set in quote asset instead of base asset
+            if self._order_amount_use_quote:
+                self._order_amount /= self._market_info.get_mid_price()
+                self._order_amount_use_quote = False
+            ##### End order_amount_use_quote functionality #####
 
             proposal = None
             asset_mid_price = Decimal("0")

@@ -195,6 +195,12 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   validator=validate_order_amount,
                   prompt_on_new=True),
+    "order_amount_use_quote":
+        ConfigVar(key="order_amount_use_quote",
+                  prompt=None,
+                  type_str="bool",
+                  default=False,
+                  validator=validate_bool),
     "price_ceiling":
         ConfigVar(key="price_ceiling",
                   prompt="Enter the price point above which only sell orders will be placed "
