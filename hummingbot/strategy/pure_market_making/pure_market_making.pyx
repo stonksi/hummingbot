@@ -706,16 +706,45 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     self.logger().warning(f"WARNING: Some markets are not connected or are down at the moment. Market "
                                           f"making may be dangerous when markets or networks are unstable.")
            
-            ##### Slight hack to make 1/100 ticks skip completely. This is to randomly offset bots ever so slightly in order to avoid hitting API limits. #####
-            if randrange(1,100) == 1:
-                return
-            ##### End hack #####
-
             ##### Added functionality to allow for order_amount set in quote asset instead of base asset
             if self._order_amount_use_quote:
                 self._order_amount /= self._market_info.get_mid_price()
                 self._order_amount_use_quote = False
+                
+                if self._order_amount >= 100:
+                    self._order_amount = round(self._order_amount,0)            
+                elif self._order_amount >= 10:
+                    self._order_amount = round(self._order_amount,1) 
+                elif self._order_amount >= 1:
+                    self._order_amount = round(self._order_amount,2) 
+                elif self._order_amount >= 0.1:
+                    self._order_amount = round(self._order_amount,3) 
+                elif self._order_amount >= 0.01:
+                    self._order_amount = round(self._order_amount,4) 
+                elif self._order_amount >= 0.001:
+                    self._order_amount = round(self._order_amount,5) 
+                elif self._order_amount >= 0.0001:
+                    self._order_amount = round(self._order_amount,6) 
+                elif self._order_amount >= 0.00001:
+                    self._order_amount = round(self._order_amount,7) 
+                elif self._order_amount >= 0.000001:
+                    self._order_amount = round(self._order_amount,8) 
+                elif self._order_amount >= 0.0000001:
+                    self._order_amount = round(self._order_amount,9) 
+                elif self._order_amount >= 0.00000001:
+                    self._order_amount = round(self._order_amount,10) 
+                elif self._order_amount >= 0.000000001:
+                    self._order_amount = round(self._order_amount,11) 
+                elif self._order_amount >= 0.0000000001:
+                    self._order_amount = round(self._order_amount,12) 
+                elif self._order_amount >= 0.00000000001:
+                    self._order_amount = round(self._order_amount,13) 
             ##### End order_amount_use_quote functionality #####
+
+            ##### Slight hack to make 1/100 ticks skip completely. This is to randomly offset bots ever so slightly in order to avoid hitting API limits. #####
+            if randrange(1,100) == 1:
+                return
+            ##### End hack #####
 
             proposal = None
             asset_mid_price = Decimal("0")
