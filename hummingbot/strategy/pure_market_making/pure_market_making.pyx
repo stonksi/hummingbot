@@ -1112,10 +1112,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
-                )
+                #self.notify_hb_app_with_timestamp(
+                #    f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                #    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
+                #)
                 return
 
         # delay order creation by filled_order_dalay (in seconds)
@@ -1135,10 +1135,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
-        )
+        #self.notify_hb_app_with_timestamp(
+        #    f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+        #    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
+        #)
 
     cdef c_did_complete_sell_order(self, object order_completed_event):
         cdef:
@@ -1156,10 +1156,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
-                )
+                #self.notify_hb_app_with_timestamp(
+                #    f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                #    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
+                #)
                 return
 
         # delay order creation by filled_order_dalay (in seconds)
@@ -1179,10 +1179,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
-        )
+        #self.notify_hb_app_with_timestamp(
+        #    f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+        #    f"{limit_order_record.price} {limit_order_record.quote_currency} completed."
+        #)
 
     cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices):
         if len(current_prices) != len(proposal_prices):
