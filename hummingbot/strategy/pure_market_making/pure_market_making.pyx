@@ -710,7 +710,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if self._order_amount_use_quote:
                 self._order_amount /= self._market_info.get_mid_price()
                 self._order_amount_use_quote = False
-                
+
                 if self._order_amount >= 100:
                     self._order_amount = round(self._order_amount,0)            
                 elif self._order_amount >= 10:
@@ -1108,7 +1108,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if order_id in self._hanging_order_ids:
                 self.log_with_clock(
                     logging.INFO,
-                    f"({self.trading_pair}) Hanging maker buy order {order_id} "
+                    f"({self.trading_pair}) Hanging maker buy order "
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
                 )
@@ -1131,7 +1131,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         self.log_with_clock(
             logging.INFO,
-            f"({self.trading_pair}) Maker buy order {order_id} "
+            f"({self.trading_pair}) Maker buy order "
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
         )
@@ -1152,7 +1152,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if order_id in self._hanging_order_ids:
                 self.log_with_clock(
                     logging.INFO,
-                    f"({self.trading_pair}) Hanging maker sell order {order_id} "
+                    f"({self.trading_pair}) Hanging maker sell order "
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
                 )
@@ -1175,7 +1175,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         self.log_with_clock(
             logging.INFO,
-            f"({self.trading_pair}) Maker sell order {order_id} "
+            f"({self.trading_pair}) Maker sell order "
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) completed."
         )
