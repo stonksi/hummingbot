@@ -55,9 +55,9 @@ class CryptoComExchange(ExchangeBase):
     trading functionality.
     """
     API_CALL_TIMEOUT = 10.0
-    SHORT_POLL_INTERVAL = uniform(5,20)
-    UPDATE_ORDER_STATUS_MIN_INTERVAL = uniform(30,100)
-    LONG_POLL_INTERVAL = uniform(120,300)
+    SHORT_POLL_INTERVAL = uniform(5,10)
+    UPDATE_ORDER_STATUS_MIN_INTERVAL = uniform(30,60)
+    LONG_POLL_INTERVAL = uniform(120,180)
 
     @classmethod
     def logger(cls) -> HummingbotLogger:
