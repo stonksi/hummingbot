@@ -193,7 +193,7 @@ pure_market_making_config_map = {
         ConfigVar(key="use_cancel_all",
                   prompt=None,
                   type_str="bool",
-                  default=False,
+                  default=True,
                   validator=validate_bool),
     "order_amount":
         ConfigVar(key="order_amount",

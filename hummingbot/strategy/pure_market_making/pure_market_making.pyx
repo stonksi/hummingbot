@@ -75,7 +75,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     order_refresh_time: float = 30.0,
                     max_order_age: float = 1800.0,
                     order_refresh_tolerance_pct: Decimal = s_decimal_neg_one,
-                    use_cancel_all: bool = False,
+                    use_cancel_all: bool = True,
                     filled_order_delay: float = 60.0,
                     inventory_skew_enabled: bool = False,
                     inventory_target_base_pct: Decimal = s_decimal_zero,
