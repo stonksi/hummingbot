@@ -675,8 +675,7 @@ class CryptoComExchange(ExchangeBase):
                     self._process_order_message(result["order_info"])
                 else:
                     self.logger().network("No order_info result for order status for order {order_id}.",
-                        exc_info=True,
-                        app_warning_msg="No order_info result for order status for order {order_id}.")
+                        exc_info=True)
 
     def _process_order_message(self, order_msg: Dict[str, Any]):
         """
