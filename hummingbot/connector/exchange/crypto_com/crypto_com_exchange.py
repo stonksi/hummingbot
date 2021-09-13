@@ -246,9 +246,8 @@ class CryptoComExchange(ExchangeBase):
         """
         while True:
             try:
-                await asyncio.sleep(uniform(0.3,0.6))
                 await self._update_trading_rules()
-                await asyncio.sleep(uniform(50,70))
+                await asyncio.sleep(uniform(60,90))
             except asyncio.CancelledError:
                 raise
             except Exception as e:
@@ -613,7 +612,7 @@ class CryptoComExchange(ExchangeBase):
         """
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
-        await asyncio.sleep(uniform(0.3,0.6))
+        await asyncio.sleep(uniform(1,3))
         account_info = await self._api_request("post", CONSTANTS.GET_ACCOUNT_SUMMARY_PATH_URL, {}, True)
         for account in account_info["result"]["accounts"]:
             asset_name = account["currency"]
@@ -658,7 +657,7 @@ class CryptoComExchange(ExchangeBase):
             # 
             self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
             for tracked_order in tracked_orders:
-                await asyncio.sleep(uniform(0.1,0.3))
+                await asyncio.sleep(uniform(0.1,0.5))
                 order_id = await tracked_order.get_exchange_order_id()
                 response = await self._api_request("post", CONSTANTS.GET_ORDER_DETAIL_PATH_URL,
                                                        {"order_id": order_id},
