@@ -23,6 +23,7 @@ def start(self):
         order_amount_use_quote = c_map.get("order_amount_use_quote").value
         order_refresh_time = c_map.get("order_refresh_time").value
         max_order_age = c_map.get("max_order_age").value
+        use_cancel_all = c_map.get("use_cancel_all").value
         bid_spread = c_map.get("bid_spread").value / Decimal('100')
         ask_spread = c_map.get("ask_spread").value / Decimal('100')
         minimum_spread = c_map.get("minimum_spread").value / Decimal('100')
@@ -98,6 +99,7 @@ def start(self):
             hanging_orders_enabled=hanging_orders_enabled,
             order_refresh_time=order_refresh_time,
             max_order_age=max_order_age,
+            use_cancel_all=use_cancel_all,
             order_optimization_enabled=order_optimization_enabled,
             ask_order_optimization_depth=ask_order_optimization_depth,
             bid_order_optimization_depth=bid_order_optimization_depth,

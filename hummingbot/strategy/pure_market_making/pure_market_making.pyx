@@ -75,6 +75,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     order_refresh_time: float = 30.0,
                     max_order_age: float = 1800.0,
                     order_refresh_tolerance_pct: Decimal = s_decimal_neg_one,
+                    use_cancel_all: bool = False,
                     filled_order_delay: float = 60.0,
                     inventory_skew_enabled: bool = False,
                     inventory_target_base_pct: Decimal = s_decimal_zero,
@@ -117,6 +118,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._order_refresh_time = order_refresh_time
         self._max_order_age = max_order_age
         self._order_refresh_tolerance_pct = order_refresh_tolerance_pct
+        self._use_cancel_all = use_cancel_all
         self._filled_order_delay = filled_order_delay
         self._inventory_skew_enabled = inventory_skew_enabled
         self._inventory_target_base_pct = inventory_target_base_pct
@@ -167,6 +169,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def max_order_age(self) -> float:
         return self._max_order_age
+    
+    @property
+    def use_cancel_all(self) -> bool:
+        return self._use_cancel_all
 
     @property
     def minimum_spread(self) -> Decimal:
@@ -1200,10 +1206,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         Cancels active non hanging orders if they are older than max age limit
         """
         cdef:
-            list active_orders = self.active_non_hanging_orders
+            list active_orders = self.active_non_hanging_orders   
         if active_orders and any(order_age(o) > self._max_order_age for o in active_orders):
-            for order in active_orders:
-                self.c_cancel_order(self._market_info, order.client_order_id)
+            if self._use_cancel_all:
+                self.c_cancel_all_orders(self._market_info)
+            else:
+                for order in active_orders:
+                    self.c_cancel_order(self._market_info, order.client_order_id)
 
     cdef c_cancel_active_orders(self, object proposal):
         """
@@ -1234,12 +1243,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 to_defer_canceling = True
 
         if not to_defer_canceling:
-            for order in active_orders:
-                self.c_cancel_order(self._market_info, order.client_order_id)
+            if self._use_cancel_all:
+                self.c_cancel_all_orders(self._market_info)
+            else:
+                for order in active_orders:
+                    self.c_cancel_order(self._market_info, order.client_order_id)
         # else:
         #     self.set_timers()
 
     cdef c_cancel_hanging_orders(self):
+        if self._use_cancel_all:
+            return
+
         if not global_config_map.get("0x_active_cancels").value:
             if ((self._market_info.market.name in self.RADAR_RELAY_TYPE_EXCHANGES) or
                     (self._market_info.market.name == "bamboo_relay" and not self._market_info.market.use_coordinator)):
@@ -1310,10 +1325,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for order in active_orders:
             negation = -1 if order.is_buy else 1
             if (negation * (order.price - price) / price) < self._minimum_spread:
-                self.logger().info(f"Order is below minimum spread ({self._minimum_spread})."
-                                   f" Cancelling Order: ({'Buy' if order.is_buy else 'Sell'}) "
-                                   f"ID - {order.client_order_id}")
-                self.c_cancel_order(self._market_info, order.client_order_id)
+                if self._use_cancel_all:
+                    self.c_cancel_all_orders(self._market_info)
+                    break
+                else:
+                    self.logger().info(f"Order is below minimum spread ({self._minimum_spread})."
+                                    f" Cancelling Order: ({'Buy' if order.is_buy else 'Sell'}) "
+                                    f"ID - {order.client_order_id}")
+                    self.c_cancel_order(self._market_info, order.client_order_id)
 
     cdef bint c_to_create_orders(self, object proposal):
         return self._create_timestamp < self._current_timestamp and \

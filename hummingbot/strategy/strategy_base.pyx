@@ -535,6 +535,15 @@ cdef class StrategyBase(TimeIterator):
 
     def cancel_order(self, market_trading_pair_tuple: MarketTradingPairTuple, order_id: str):
         self.c_cancel_order(market_trading_pair_tuple, order_id)
+
+    cdef c_cancel_all_orders(self, object market_trading_pair_tuple):
+        cdef:
+            ConnectorBase market = market_trading_pair_tuple.market
+
+        market.c_cancel_all_orders(market_trading_pair_tuple.trading_pair)
+    
+    def cancel_all_orders(self, market_trading_pair_tuple: MarketTradingPairTuple):
+        self.c_cancel_all_orders(market_trading_pair_tuple)
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>
 

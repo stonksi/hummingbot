@@ -189,6 +189,12 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   default=Decimal("0"),
                   validator=lambda v: validate_decimal(v, -10, 10, inclusive=True)),
+    "use_cancel_all":
+        ConfigVar(key="use_cancel_all",
+                  prompt=None,
+                  type_str="bool",
+                  default=False,
+                  validator=validate_bool),
     "order_amount":
         ConfigVar(key="order_amount",
                   prompt=order_amount_prompt,

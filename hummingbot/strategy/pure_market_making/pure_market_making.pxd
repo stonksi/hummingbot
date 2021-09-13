@@ -22,6 +22,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         double _order_refresh_time
         double _max_order_age
         object _order_refresh_tolerance_pct
+        bint _use_cancel_all
         double _filled_order_delay
         bint _inventory_skew_enabled
         object _inventory_target_base_pct
