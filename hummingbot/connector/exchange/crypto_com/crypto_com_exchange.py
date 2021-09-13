@@ -671,7 +671,12 @@ class CryptoComExchange(ExchangeBase):
                 if "trade_list" in result:
                     for trade_msg in result["trade_list"]:
                         await self._process_trade_message(trade_msg)
-                self._process_order_message(result["order_info"])
+                if "order_info" in result:
+                    self._process_order_message(result["order_info"])
+                else:
+                    self.logger().network("No order_info result for order status for order {order_id}.",
+                        exc_info=True,
+                        app_warning_msg="No order_info result for order status for order {order_id}.")
 
     def _process_order_message(self, order_msg: Dict[str, Any]):
         """
