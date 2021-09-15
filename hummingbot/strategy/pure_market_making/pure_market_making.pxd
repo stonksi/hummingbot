@@ -58,6 +58,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         int64_t _logging_options
         object _last_own_trade_price
         list _hanging_orders_to_recreate
+        bint _apply_quote_logic
 
     cdef object c_get_mid_price(self)
     cdef object c_create_base_proposal(self)

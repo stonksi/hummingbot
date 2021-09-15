@@ -156,6 +156,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
         self._last_own_trade_price = Decimal('nan')
+        self._apply_quote_logic = order_amount_use_quote
 
         self.c_add_markets([market_info.market])
 
@@ -713,9 +714,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                                           f"making may be dangerous when markets or networks are unstable.")
            
             ##### Added functionality to allow for order_amount set in quote asset instead of base asset
-            if self._order_amount_use_quote:
-                self._order_amount /= self._market_info.get_mid_price()
-                self._order_amount_use_quote = False
+            if self._apply_quote_logic:
+                mid_price = self._market_info.get_mid_price()
+                self._order_amount /= mid_price
+                if self._ask_order_optimization_depth > 0:
+                    self._ask_order_optimization_depth /= mid_price
+                if self._bid_order_optimization_depth > 0:
+                    self._bid_order_optimization_depth /= mid_price
+                self._apply_quote_logic = False
 
                 if self._order_amount >= 100:
                     self._order_amount = round(self._order_amount,0)            
