@@ -1341,9 +1341,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     self.c_cancel_order(self._market_info, order.client_order_id)
 
     cdef bint c_to_create_orders(self, object proposal):
-        return self._create_timestamp < self._current_timestamp and \
-            proposal is not None and \
-            len(self.active_non_hanging_orders) == 0
+        return proposal is not None
+        # return self._create_timestamp < self._current_timestamp and \
+        #     proposal is not None and \
+        #     len(self.active_non_hanging_orders) == 0
 
     cdef c_execute_orders_proposal(self, object proposal):
         cdef:
