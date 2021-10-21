@@ -916,7 +916,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for sell in proposal.sells:
             proposal_base_balance += sell.size
 
-        if base_balance < proposal_base_balance
+        if base_balance < proposal_base_balance:
             base_balance = proposal_base_balance
         ### End fix ###
 
