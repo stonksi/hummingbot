@@ -923,7 +923,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         # if base_balance < proposal_sell_balance:
         #     base_balance = proposal_sell_balance
         if base_balance < proposal_buy_balance:
-            base_balance = Decimal(proposal_buy_balance / 2)
+            base_balance = Decimal(proposal_buy_balance)
         ### End fix ###
 
         total_order_size = calculate_total_order_size(self._order_amount, self._order_level_amount, self._order_levels)
