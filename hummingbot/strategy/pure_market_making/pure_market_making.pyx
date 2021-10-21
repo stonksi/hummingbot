@@ -912,17 +912,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         base_balance, quote_balance = self.c_get_adjusted_available_balance(self.active_orders)
 
         ### Addition to fix weird buy skew on temporarily low base_balance ###
-        proposal_base_balance = Decimal(0.0)
+        proposal_buy_balance = Decimal(0.0)
         for buy in proposal.buys:
-            proposal_base_balance += buy.size
+            proposal_buy_balance += Decimal(buy.size * buy.price)
 
-        for sell in proposal.sells:
-            proposal_base_balance += sell.size
+        # proposal_sell_balance = Decimal(0.0)
+        # for sell in proposal.sells:
+        #     proposal_sell_balance += sell.size
 
-        proposal_base_balance /= 2
-
-        if base_balance < proposal_base_balance:
-            base_balance = proposal_base_balance
+        # if base_balance < proposal_sell_balance:
+        #     base_balance = proposal_sell_balance
+        if base_balance < proposal_buy_balance:
+            base_balance = Decimal(proposal_buy_balance / 2)
         ### End fix ###
 
         total_order_size = calculate_total_order_size(self._order_amount, self._order_level_amount, self._order_levels)
