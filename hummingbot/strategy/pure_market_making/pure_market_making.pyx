@@ -913,8 +913,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         ### Addition to fix weird buy skew on temporarily low base_balance ###
         proposal_base_balance = Decimal(0.0)
+        for buy in proposal.buys:
+            proposal_base_balance += buy.size
+
         for sell in proposal.sells:
             proposal_base_balance += sell.size
+
+        proposal_base_balance /= 2
 
         if base_balance < proposal_base_balance:
             base_balance = proposal_base_balance
