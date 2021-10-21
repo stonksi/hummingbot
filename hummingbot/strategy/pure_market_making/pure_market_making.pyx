@@ -916,15 +916,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for buy in proposal.buys:
             proposal_buy_balance += buy.size
 
-        # proposal_sell_balance = Decimal(0.0)
-        # for sell in proposal.sells:
-        #     proposal_sell_balance += sell.size
-
-        # if base_balance < proposal_sell_balance:
-        #     base_balance = proposal_sell_balance
-        
-        proposal_buy_balance *= 2
-
         if base_balance < proposal_buy_balance:
             base_balance = proposal_buy_balance
         ### End fix ###
