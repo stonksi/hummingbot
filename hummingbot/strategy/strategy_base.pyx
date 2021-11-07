@@ -151,7 +151,8 @@ cdef class StrategyBase(TimeIterator):
 
     def log_with_clock(self, log_level: int, msg: str, **kwargs):
         clock_timestamp = pd.Timestamp(self._current_timestamp, unit="s", tz="UTC")
-        self.logger().log(log_level, f"{msg} [clock={str(clock_timestamp)}]", **kwargs)
+        clock_str = clock_timestamp.strftime('%Y-%m-%d %X.%f')
+        self.logger().log(log_level, f"{msg} [clock={clock_str[:-4]}]", **kwargs)
 
     @property
     def trades(self) -> List[Trade]:
@@ -526,14 +527,23 @@ cdef class StrategyBase(TimeIterator):
             ConnectorBase market = market_trading_pair_tuple.market
 
         if self._sb_order_tracker.c_check_and_track_cancel(order_id):
-            self.log_with_clock(
-                logging.INFO,
-                f"({market_trading_pair_tuple.trading_pair}) Cancelling the limit order {order_id}."
-            )
+            #self.log_with_clock(
+            #    logging.INFO,
+            #    f"({market_trading_pair_tuple.trading_pair}) Cancelling the limit order {order_id}."
+            #)
             market.c_cancel(market_trading_pair_tuple.trading_pair, order_id)
 
     def cancel_order(self, market_trading_pair_tuple: MarketTradingPairTuple, order_id: str):
         self.c_cancel_order(market_trading_pair_tuple, order_id)
+
+    cdef c_cancel_all_orders(self, object market_trading_pair_tuple):
+        cdef:
+            ConnectorBase market = market_trading_pair_tuple.market
+
+        market.c_cancel_all_orders(market_trading_pair_tuple.trading_pair)
+    
+    def cancel_all_orders(self, market_trading_pair_tuple: MarketTradingPairTuple):
+        self.c_cancel_all_orders(market_trading_pair_tuple)
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>
 
@@ -600,7 +610,8 @@ cdef class StrategyBase(TimeIterator):
         :param msg: The message to be notified
         """
         timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
-        self.notify_hb_app(f"({timestamp}) {msg}")
+        ts_str = timestamp.strftime('%Y-%m-%d %X.%f')
+        self.notify_hb_app(f"({ts_str[:-4]}) {msg}")
 
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>

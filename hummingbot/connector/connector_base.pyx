@@ -267,6 +267,16 @@ cdef class ConnectorBase(NetworkIterator):
         """
         raise NotImplementedError
 
+    cdef c_cancel_all_orders(self, str trading_pair):
+        self.cancel_all_orders(trading_pair)
+
+    def cancel_all_orders(self, trading_pair: str):
+        """
+        Cancel an order.
+        :param trading_pair: The market (e.g. BTC-USDT) of the order.
+        """
+        raise NotImplementedError
+
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
 

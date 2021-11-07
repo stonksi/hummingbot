@@ -20,8 +20,10 @@ from decimal import Decimal
 def start(self):
     try:
         order_amount = c_map.get("order_amount").value
+        order_amount_use_quote = c_map.get("order_amount_use_quote").value
         order_refresh_time = c_map.get("order_refresh_time").value
         max_order_age = c_map.get("max_order_age").value
+        use_cancel_all = c_map.get("use_cancel_all").value
         bid_spread = c_map.get("bid_spread").value / Decimal('100')
         ask_spread = c_map.get("ask_spread").value / Decimal('100')
         minimum_spread = c_map.get("minimum_spread").value / Decimal('100')
@@ -43,6 +45,8 @@ def start(self):
         order_optimization_enabled = c_map.get("order_optimization_enabled").value
         ask_order_optimization_depth = c_map.get("ask_order_optimization_depth").value
         bid_order_optimization_depth = c_map.get("bid_order_optimization_depth").value
+        order_optimization_failsafe_enabled = c_map.get("order_optimization_failsafe_enabled").value
+        inventory_max_available_quote_balance = c_map.get("inventory_max_available_quote_balance").value
         add_transaction_costs_to_orders = c_map.get("add_transaction_costs").value
         price_source = c_map.get("price_source").value
         price_type = c_map.get("price_type").value
@@ -86,6 +90,7 @@ def start(self):
             ask_spread=ask_spread,
             order_levels=order_levels,
             order_amount=order_amount,
+            order_amount_use_quote=order_amount_use_quote,
             order_level_spread=order_level_spread,
             order_level_amount=order_level_amount,
             inventory_skew_enabled=inventory_skew_enabled,
@@ -95,9 +100,12 @@ def start(self):
             hanging_orders_enabled=hanging_orders_enabled,
             order_refresh_time=order_refresh_time,
             max_order_age=max_order_age,
+            use_cancel_all=use_cancel_all,
             order_optimization_enabled=order_optimization_enabled,
             ask_order_optimization_depth=ask_order_optimization_depth,
             bid_order_optimization_depth=bid_order_optimization_depth,
+            order_optimization_failsafe_enabled=order_optimization_failsafe_enabled,
+            inventory_max_available_quote_balance=inventory_max_available_quote_balance,
             add_transaction_costs_to_orders=add_transaction_costs_to_orders,
             logging_options=strategy_logging_options,
             asset_price_delegate=asset_price_delegate,

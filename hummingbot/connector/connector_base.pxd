@@ -18,6 +18,7 @@ cdef class ConnectorBase(NetworkIterator):
     cdef str c_buy(self, str trading_pair, object amount, object order_type=*, object price=*, dict kwargs=*)
     cdef str c_sell(self, str trading_pair, object amount, object order_type=*, object price=*, dict kwargs=*)
     cdef c_cancel(self, str trading_pair, str client_order_id)
+    cdef c_cancel_all_orders(self, str trading_pair)
     cdef c_stop_tracking_order(self, str order_id)
     cdef object c_get_balance(self, str currency)
     cdef object c_get_available_balance(self, str currency)

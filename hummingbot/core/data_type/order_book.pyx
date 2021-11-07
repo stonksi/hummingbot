@@ -434,6 +434,23 @@ cdef class OrderBook(PubSub):
 
         return OrderBookQueryResult(price, NaN, result_price, cumulative_volume)
 
+    cdef OrderBookQueryResult c_get_next_price(self, bint is_buy, double price):
+        cdef:
+            double result_price = NaN
+
+        if is_buy:
+            for order_book_row in self.ask_entries():
+                if order_book_row.price > price:
+                    result_price = order_book_row.price
+                    break                
+        else:
+            for order_book_row in self.bid_entries():
+                if order_book_row.price < price:
+                    result_price = order_book_row.price
+                    break
+
+        return OrderBookQueryResult(price, NaN, result_price, NaN)
+
     cdef OrderBookQueryResult c_get_quote_volume_for_price(self, bint is_buy, double price):
         cdef:
             double cumulative_volume = 0
@@ -469,6 +486,9 @@ cdef class OrderBook(PubSub):
     def get_volume_for_price(self, bint is_buy, double price) -> OrderBookQueryResult:
         return self.c_get_volume_for_price(is_buy, price)
 
+    def get_next_price(self, bint is_buy, double price) -> OrderBookQueryResult:
+        return self.c_get_next_price(is_buy, price)
+    
     def get_quote_volume_for_price(self, is_buy: bool, price: float) -> OrderBookQueryResult:
         return self.c_get_quote_volume_for_price(is_buy, price)
 

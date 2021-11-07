@@ -45,6 +45,9 @@ class MarketTradingPairTuple(NamedTuple):
     def get_price_for_volume(self, is_buy: bool, volume: Decimal) -> ClientOrderBookQueryResult:
         return self.market.get_price_for_volume(self.trading_pair, is_buy, volume)
 
+    def get_next_price(self, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
+        return self.market.get_next_price(self.trading_pair, is_buy, price)
+
     def order_book_bid_entries(self) -> Iterator[ClientOrderBookRow]:
         return self.market.order_book_bid_entries(self.trading_pair)
 

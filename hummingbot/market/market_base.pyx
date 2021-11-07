@@ -205,6 +205,9 @@ cdef class MarketBase(NetworkIterator):
 
     cdef c_cancel(self, str trading_pair, str client_order_id):
         raise NotImplementedError
+    
+    cdef c_cancel_all_orders(self, str trading_pair):
+        raise NotImplementedError
 
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
@@ -365,6 +368,17 @@ cdef class MarketBase(NetworkIterator):
                                           result_price,
                                           result_volume)
 
+    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price):
+        cdef:
+            OrderBook order_book = self.c_get_order_book(trading_pair)
+            OrderBookQueryResult result = order_book.c_get_next_price(is_buy, float(price))
+            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
+            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+        return ClientOrderBookQueryResult(query_price,
+                                          s_decimal_NaN,
+                                          result_price,
+                                          s_decimal_NaN)
+
     cdef ClientOrderBookQueryResult c_get_quote_volume_for_price(self, str trading_pair, bint is_buy, object price):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
@@ -410,6 +424,9 @@ cdef class MarketBase(NetworkIterator):
     def get_volume_for_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
         return self.c_get_volume_for_price(trading_pair, is_buy, price)
 
+    def get_next_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
+        return self.c_get_next_price(trading_pair, is_buy, price)
+
     def get_quote_volume_for_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
         return self.c_get_quote_volume_for_price(trading_pair, is_buy, price)
 
@@ -429,6 +446,9 @@ cdef class MarketBase(NetworkIterator):
 
     def cancel(self, trading_pair: str, client_order_id: str):
         return self.c_cancel(trading_pair, client_order_id)
+    
+    def cancel_all_orders(self, trading_pair: str):
+        return self.c_cancel_all_orders(trading_pair)
 
     def get_available_balance(self, currency: str) -> Decimal:
         return self.c_get_available_balance(currency)

@@ -38,8 +38,14 @@ max_order_age: null
 # (Enter 1 to indicate 1%), value below 0, e.g. -1, is to disable this feature - not recommended.
 order_refresh_tolerance_pct: null
 
+# Use cancel_all instead of cancelling each order individually
+use_cancel_all: null
+
 # Size of your bid and ask order.
 order_amount: null
+
+# Use quote asset for order amount instead of base asset (true/false).
+order_amount_use_quote: null
 
 # Price band ceiling.
 price_ceiling: null
@@ -90,6 +96,12 @@ ask_order_optimization_depth: null
 
 # The depth in base asset amount to be used for finding top bid (for order optimization mode).
 bid_order_optimization_depth: null
+
+# Use failsafe price (one above/below next price) when optimization cannot put order on top/bottom of order book (true/false).
+order_optimization_failsafe_enabled: null
+
+# Max quote balance available to trading bot? (-1 = disabled)
+inventory_max_available_quote_balance: null
 
 # Whether to enable adding transaction costs to order price calculation (true/false).
 add_transaction_costs: null

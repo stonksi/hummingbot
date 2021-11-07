@@ -165,12 +165,24 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   default=Decimal("0"),
                   validator=lambda v: validate_decimal(v, -10, 10, inclusive=True)),
+    "use_cancel_all":
+        ConfigVar(key="use_cancel_all",
+                  prompt=None,
+                  type_str="bool",
+                  default=True,
+                  validator=validate_bool),
     "order_amount":
         ConfigVar(key="order_amount",
                   prompt=order_amount_prompt,
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, min_value=Decimal("0"), inclusive=False),
                   prompt_on_new=True),
+    "order_amount_use_quote":
+        ConfigVar(key="order_amount_use_quote",
+                  prompt=None,
+                  type_str="bool",
+                  default=False,
+                  validator=validate_bool),
     "price_ceiling":
         ConfigVar(key="price_ceiling",
                   prompt="Enter the price point above which only sell orders will be placed "
@@ -288,6 +300,19 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, min_value=0),
                   default=0),
+    "order_optimization_failsafe_enabled":
+        ConfigVar(key="order_optimization_failsafe_enabled",
+                  prompt="Do you want to enable order optimization fail safe? (Yes/No) >>> ",
+                  required_if=lambda: pure_market_making_config_map.get("order_optimization_enabled").value,
+                  type_str="bool",
+                  default=True,
+                  validator=validate_bool),
+    "inventory_max_available_quote_balance":
+        ConfigVar(key="inventory_max_available_quote_balance",
+                  prompt="Set max available balance for quote asset? (-1 = disabled) >>> ",
+                  type_str="decimal",
+                  validator=lambda v: validate_decimal(v, -1, inclusive=True),
+                  default=-1),
     "add_transaction_costs":
         ConfigVar(key="add_transaction_costs",
                   prompt="Do you want to add transaction costs automatically to order prices? (Yes/No) >>> ",
