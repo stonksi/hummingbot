@@ -22,6 +22,7 @@ CANCEL_ORDER_PATH_URL = "/private/cancel-order"
 CANCEL_ALL_ORDERS_PATH_URL = "private/cancel-all-orders"
 GET_ACCOUNT_SUMMARY_PATH_URL = "/private/get-account-summary"
 GET_ORDER_DETAIL_PATH_URL = "/private/get-order-detail"
+GET_OPEN_ORDERS_PATH_URL = "/private/get-open-orders"
 
 # Crypto.com has a per method API limit
 
