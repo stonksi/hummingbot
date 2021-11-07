@@ -72,8 +72,6 @@ class HummingbotCLI:
         loop.create_task(start_trade_monitor(self.trade_monitor))
 
     async def run(self):
-        self.app = Application(layout=self.layout, full_screen=True, key_bindings=self.bindings, style=load_style(),
-                               mouse_support=True, clipboard=PyperclipClipboard())
         await self.app.run_async()
 
     def accept(self, buff):
