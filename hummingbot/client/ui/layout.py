@@ -164,9 +164,9 @@ def create_log_toggle(function):
     return Button(
         text='> log pane',
         width=13,
-        handler=function,
-        left_symbol='',
-        right_symbol=''
+        handler=function#,
+        #left_symbol='',
+        #right_symbol=''
     )
 
 
