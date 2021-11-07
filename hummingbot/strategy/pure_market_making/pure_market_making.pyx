@@ -1286,7 +1286,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if not to_defer_canceling:
             self._hanging_orders_tracker.update_strategy_orders_with_equivalent_orders()
-            if._use_cancel_all:
+            if self._use_cancel_all:
                 self.c_cancel_all_orders(self._market_info)
             else:
                 for order in self.active_non_hanging_orders:
