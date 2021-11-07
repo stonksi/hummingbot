@@ -59,13 +59,6 @@ cdef class ExchangeBase(ConnectorBase):
     def get_mid_price(self, trading_pair: str) -> Decimal:
         return (self.get_price(trading_pair, True) + self.get_price(trading_pair, False)) / Decimal("2")
 
-    async def get_active_exchange_markets(self) -> pd.DataFrame:
-        """
-        :return: data frame with trading_pair as index, and at least the following columns --
-                 ["baseAsset", "quoteAsset", "volume", "USDVolume"]
-        """
-        raise NotImplementedError
-
     cdef str c_buy(self, str trading_pair, object amount, object order_type=OrderType.MARKET,
                    object price=s_decimal_NaN, dict kwargs={}):
         return self.buy(trading_pair, amount, order_type, price, **kwargs)
@@ -76,9 +69,6 @@ cdef class ExchangeBase(ConnectorBase):
 
     cdef c_cancel(self, str trading_pair, str client_order_id):
         return self.cancel(trading_pair, client_order_id)
-    
-    cdef c_cancel_all_orders(self, str trading_pair):
-        return self.cancel_all_orders(trading_pair)
 
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
@@ -158,17 +148,6 @@ cdef class ExchangeBase(ConnectorBase):
                                           result_price,
                                           result_volume)
 
-    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price):
-        cdef:
-            OrderBook order_book = self.c_get_order_book(trading_pair)
-            OrderBookQueryResult result = order_book.c_get_next_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
-        return ClientOrderBookQueryResult(query_price,
-                                          s_decimal_NaN,
-                                          result_price,
-                                          s_decimal_NaN)
-                                          
     cdef ClientOrderBookQueryResult c_get_quote_volume_for_price(self, str trading_pair, bint is_buy, object price):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
@@ -210,9 +189,6 @@ cdef class ExchangeBase(ConnectorBase):
     def get_volume_for_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
         return self.c_get_volume_for_price(trading_pair, is_buy, price)
 
-    def get_next_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
-        return self.c_get_next_price(trading_pair, is_buy, price)
-        
     def get_quote_volume_for_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
         return self.c_get_quote_volume_for_price(trading_pair, is_buy, price)
 
@@ -228,9 +204,6 @@ cdef class ExchangeBase(ConnectorBase):
         raise NotImplementedError
 
     def cancel(self, trading_pair: str, client_order_id: str):
-        raise NotImplementedError
-    
-    def cancel_all_orders(self, trading_pair: str):
         raise NotImplementedError
 
     def get_order_book(self, trading_pair: str) -> OrderBook:

@@ -267,16 +267,6 @@ cdef class ConnectorBase(NetworkIterator):
         """
         raise NotImplementedError
 
-    cdef c_cancel_all_orders(self, str trading_pair):
-        self.cancel_all_orders(trading_pair)
-
-    def cancel_all_orders(self, trading_pair: str):
-        """
-        Cancel an order.
-        :param trading_pair: The market (e.g. BTC-USDT) of the order.
-        """
-        raise NotImplementedError
-
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
 
@@ -391,7 +381,7 @@ cdef class ConnectorBase(NetworkIterator):
         if price.is_nan():
             return price
         price_quantum = self.c_get_order_price_quantum(trading_pair, price)
-        return round(price / price_quantum) * price_quantum
+        return (price // price_quantum) * price_quantum
 
     def quantize_order_price(self, trading_pair: str, price: Decimal) -> Decimal:
         """

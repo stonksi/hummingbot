@@ -2,18 +2,21 @@
 
 connector_status = {
     'ascend_ex': 'yellow',
-    'balancer': 'yellow',
+    'balancer': 'green',
     'beaxy': 'green',
     'binance': 'green',
-    'binance_perpetual': 'yellow',
+    'binance_perpetual': 'green',
     'binance_perpetual_testnet': 'yellow',
-    'binance_us': 'yellow',
+    'binance_us': 'green',
     'bitfinex': 'yellow',
+    'bitmart': 'green',
     'bittrex': 'yellow',
     'blocktane': 'yellow',
+    'bybit_perpetual': 'green',
+    'bybit_perpetual_testnet': 'yellow',
     'celo': 'yellow',
     'coinbase_pro': 'yellow',
-    'coinzoom': 'green',
+    'coinzoom': 'yellow',
     'crypto_com': 'green',
     'digifinex': "yellow",
     'dydx': 'green',
@@ -28,8 +31,8 @@ connector_status = {
     'k2': 'red',
     'liquid': 'yellow',
     'loopring': 'yellow',
-    'ndax': 'green',
-    'ndax_testnet': 'green',
+    'ndax': 'yellow',
+    'ndax_testnet': 'yellow',
     'okex': 'yellow',
     'perpetual_finance': 'yellow',
     'probit': 'yellow',
@@ -40,7 +43,6 @@ connector_status = {
 }
 
 warning_messages = {
-    'eterbase': 'Hack investigation and security audit is ongoing for Eterbase. Trading is currently disabled.'
 }
 
 
