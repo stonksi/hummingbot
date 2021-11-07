@@ -223,7 +223,7 @@ cdef class ExchangeBase(ConnectorBase):
     def cancel(self, trading_pair: str, client_order_id: str):
         raise NotImplementedError
 
-	def cancel_all_orders(self, trading_pair: str):
+    def cancel_all_orders(self, trading_pair: str):
         raise NotImplementedError
 
     def get_order_book(self, trading_pair: str) -> OrderBook:
