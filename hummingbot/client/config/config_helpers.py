@@ -33,7 +33,6 @@ from hummingbot.client.settings import (
     CONNECTOR_SETTINGS
 )
 from hummingbot.client.config.security import Security
-from hummingbot.core.utils.market_price import get_last_price
 from hummingbot import get_strategy_list
 from eth_account import Account
 
@@ -100,7 +99,7 @@ def parse_cvar_value(cvar: ConfigVar, value: Any) -> Any:
 def cvar_json_migration(cvar: ConfigVar, cvar_value: Any) -> Any:
     """
     A special function to migrate json config variable when its json type changes, for paper_trade_account_balance
-    and min_quote_order_amount, they were List but change to Dict.
+    and min_quote_order_amount (deprecated), they were List but change to Dict.
     """
     if cvar.key in ("paper_trade_account_balance", "min_quote_order_amount") and isinstance(cvar_value, List):
         results = {}
@@ -364,25 +363,6 @@ async def create_yml_files():
                         pass
                 if conf_version < template_version:
                     shutil.copy(template_path, conf_path)
-
-
-def default_min_quote(quote_asset: str) -> (str, Decimal):
-    result_quote, result_amount = "USD", Decimal("11")
-    min_quote_config = global_config_map["min_quote_order_amount"].value
-    if min_quote_config is not None and quote_asset in min_quote_config:
-        result_quote, result_amount = quote_asset, Decimal(str(min_quote_config[quote_asset]))
-    return result_quote, result_amount
-
-
-async def minimum_order_amount(exchange: str, trading_pair: str) -> Decimal:
-    base_asset, quote_asset = trading_pair.split("-")
-    default_quote_asset, default_amount = default_min_quote(quote_asset)
-    quote_amount = Decimal("0")
-    if default_quote_asset == quote_asset:
-        mid_price = await get_last_price(exchange, trading_pair)
-        if mid_price is not None:
-            quote_amount = default_amount / mid_price
-    return round(quote_amount, 4)
 
 
 def default_strategy_file_path(strategy: str) -> str:
