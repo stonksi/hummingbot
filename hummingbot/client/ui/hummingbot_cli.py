@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import asyncio
-from typing import Callable, Optional
+from typing import Callable
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.application import Application
 from prompt_toolkit.clipboard.pyperclip import PyperclipClipboard
@@ -56,7 +56,8 @@ class HummingbotCLI:
         self.bindings = bindings
         self.input_handler = input_handler
         self.input_field.accept_handler = self.accept
-        self.app: Optional[Application] = None
+        self.app = Application(layout=self.layout, full_screen=True, key_bindings=self.bindings, style=load_style(),
+                               mouse_support=True, clipboard=PyperclipClipboard())
 
         # settings
         self.prompt_text = ">>> "
