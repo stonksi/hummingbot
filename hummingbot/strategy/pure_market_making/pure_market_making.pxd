@@ -54,6 +54,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         object _last_own_trade_price
         bint _should_wait_order_cancel_confirmation
 
+
+        ### Stonksi addition ###
+        bint _order_optimization_failsafe_enabled
+        object _inventory_max_available_quote_balance   
+        ### Stonksi addition ###
+
     cdef object c_get_mid_price(self)
     cdef object c_create_base_proposal(self)
     cdef tuple c_get_adjusted_available_balance(self, list orders)

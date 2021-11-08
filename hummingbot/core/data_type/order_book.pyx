@@ -498,3 +498,26 @@ cdef class OrderBook(PubSub):
         self.apply_snapshot(snapshot.bids, snapshot.asks, snapshot.update_id)
         for diff in replay_diffs:
             self.apply_diffs(diff.bids, diff.asks, diff.update_id)
+
+
+    ### Stonksi addition ###
+    cdef OrderBookQueryResult c_get_next_price(self, bint is_buy, double price):
+        cdef:
+            double result_price = NaN
+
+        if is_buy:
+            for order_book_row in self.ask_entries():
+                if order_book_row.price > price:
+                    result_price = order_book_row.price
+                    break                
+        else:
+            for order_book_row in self.bid_entries():
+                if order_book_row.price < price:
+                    result_price = order_book_row.price
+                    break
+
+        return OrderBookQueryResult(price, NaN, result_price, NaN)
+    
+    def get_next_price(self, bint is_buy, double price) -> OrderBookQueryResult:
+        return self.c_get_next_price(is_buy, price)
+    ### Stonksi addition ###

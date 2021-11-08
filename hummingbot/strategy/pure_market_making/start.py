@@ -53,6 +53,12 @@ def start(self):
         order_refresh_tolerance_pct = c_map.get("order_refresh_tolerance_pct").value / Decimal('100')
         order_override = c_map.get("order_override").value
 
+
+        ### Stonksi addition ###
+        order_optimization_failsafe_enabled = c_map.get("order_optimization_failsafe_enabled").value
+        inventory_max_available_quote_balance = c_map.get("inventory_max_available_quote_balance").value
+        ### Stonksi addition ###
+
         trading_pair: str = raw_trading_pair
         maker_assets: Tuple[str, str] = self._initialize_market_assets(exchange, [trading_pair])[0]
         market_names: List[Tuple[str, List[str]]] = [(exchange, [trading_pair])]
@@ -113,6 +119,12 @@ def start(self):
             hb_app_notification=True,
             order_override={} if order_override is None else order_override,
             should_wait_order_cancel_confirmation=should_wait_order_cancel_confirmation,
+
+
+            ### Stonksi addition ###
+            order_optimization_failsafe_enabled=order_optimization_failsafe_enabled,
+            inventory_max_available_quote_balance=inventory_max_available_quote_balance,
+            ### Stonksi addition ###
         )
     except Exception as e:
         self._notify(str(e))

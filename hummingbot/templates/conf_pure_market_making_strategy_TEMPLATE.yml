@@ -130,3 +130,12 @@ should_wait_order_cancel_confirmation: True
 
 # For more detailed information, see:
 # https://docs.hummingbot.io/strategies/pure-market-making/#configuration-parameters
+
+
+### Stonksi addition ###
+# Use failsafe price (one above/below next price) when optimization cannot put order on top/bottom of order book (true/false).
+order_optimization_failsafe_enabled: null
+
+# Max quote balance available to trading bot? (-1 = disabled)
+inventory_max_available_quote_balance: null
+### Stonksi addition ###

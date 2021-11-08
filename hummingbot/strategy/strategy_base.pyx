@@ -526,10 +526,12 @@ cdef class StrategyBase(TimeIterator):
             ConnectorBase market = market_trading_pair_tuple.market
 
         if self._sb_order_tracker.c_check_and_track_cancel(order_id):
-            self.log_with_clock(
-                logging.INFO,
-                f"({market_trading_pair_tuple.trading_pair}) Cancelling the limit order {order_id}."
-            )
+            ### Stonksi ###
+            #self.log_with_clock(
+            #    logging.INFO,
+            #    f"({market_trading_pair_tuple.trading_pair}) Cancelling the limit order {order_id}."
+            #)
+            ### Stonksi ###
             market.c_cancel(market_trading_pair_tuple.trading_pair, order_id)
 
     def cancel_order(self, market_trading_pair_tuple: MarketTradingPairTuple, order_id: str):

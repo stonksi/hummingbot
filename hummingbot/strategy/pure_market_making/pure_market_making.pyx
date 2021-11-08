@@ -97,6 +97,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     hb_app_notification: bool = False,
                     order_override: Dict[str, List[str]] = {},
                     should_wait_order_cancel_confirmation = True,
+                    ### Stonksi addition ###
+                    order_optimization_failsafe_enabled: bool = True,
+                    inventory_max_available_quote_balance: Decimal = s_decimal_neg_one,
+                    ### Stonksi addition ###
                     ):
         if price_ceiling != s_decimal_neg_one and price_ceiling < price_floor:
             raise ValueError("Parameter price_ceiling cannot be lower than price_floor.")
@@ -148,6 +152,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._status_report_interval = status_report_interval
         self._last_own_trade_price = Decimal('nan')
         self._should_wait_order_cancel_confirmation = should_wait_order_cancel_confirmation
+
+
+        ### Stonksi addition ###
+        self._order_optimization_failsafe_enabled = order_optimization_failsafe_enabled
+        self._inventory_max_available_quote_balance = inventory_max_available_quote_balance
+        ### Stonksi addition ###
+
 
         self.c_add_markets([market_info.market])
 
@@ -454,6 +465,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     def inventory_cost_price_delegate(self, value):
         self._inventory_cost_price_delegate = value
 
+
+    ### Stonksi addition ###
+    @property
+    def order_optimization_failsafe_enabled(self) -> bool:
+        return self._order_optimization_failsafe_enabled
+
+    @property
+    def inventory_max_available_quote_balance(self) -> Decimal:
+        return self._inventory_max_available_quote_balance
+    ### Stonksi addition ###
+
+
     def inventory_skew_stats_data_frame(self) -> Optional[pd.DataFrame]:
         cdef:
             ExchangeBase market = self._market_info.market
@@ -516,8 +539,24 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         price = self._market_info.get_mid_price()
         base_balance = float(market.get_balance(base_asset))
         quote_balance = float(market.get_balance(quote_asset))
+
+
+        ### Stonksi addition ###
+        if 0 <= float(self._inventory_max_available_quote_balance) < quote_balance:
+            quote_balance = float(self._inventory_max_available_quote_balance)
+        ### Stonksi addition ###
+
+
         available_base_balance = float(market.get_available_balance(base_asset))
         available_quote_balance = float(market.get_available_balance(quote_asset))
+
+
+        ### Stonksi addition ###
+        if 0 <= float(self._inventory_max_available_quote_balance < available_quote_balance):
+            available_quote_balance = float(self._inventory_max_available_quote_balance)
+        ### Stonksi addition ###
+
+
         base_value = base_balance * float(price)
         total_in_quote = base_value + quote_balance
         base_ratio = base_value / total_in_quote if total_in_quote > 0 else 0
@@ -799,6 +838,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object base_balance = market.c_get_available_balance(self.base_asset)
             object quote_balance = market.c_get_available_balance(self.quote_asset)
 
+
+            ### Stonksi addition ###
+            if 0 <= self._inventory_max_available_quote_balance < quote_balance:
+                quote_balance = self._inventory_max_available_quote_balance
+            ### Stonksi addition ###
+
+
         for order in orders:
             if order.is_buy:
                 quote_balance += order.quantity * order.price
@@ -965,7 +1011,20 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
             proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
-            lower_buy_price = min(proposal.buys[0].price, price_above_bid)
+            #lower_buy_price = min(proposal.buys[0].price, price_above_bid) ### Stonksi ###
+            
+
+            ### Stonksi addition ###
+            lower_buy_price = proposal.buys[0].price
+            if price_above_bid < lower_buy_price:
+                lower_buy_price = price_above_bid
+            elif self._order_optimization_failsafe_enabled:
+                next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
+                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
+            ### Stonksi addition ###
+
+
             for i, proposed in enumerate(proposal.buys):
                 proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
 
@@ -983,7 +1042,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
             proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
-            higher_sell_price = max(proposal.sells[0].price, price_below_ask)
+            #higher_sell_price = max(proposal.sells[0].price, price_below_ask) ### Stonksi ###
+
+            ### Stonksi addition ###
+            higher_sell_price = proposal.sells[0].price
+            if price_below_ask > higher_sell_price:
+                higher_sell_price = price_below_ask
+            elif self._order_optimization_failsafe_enabled:
+                next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
+                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum    
+            ### Stonksi addition ###
+
             for i, proposed in enumerate(proposal.sells):
                 proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price) * (1 + self.order_level_spread * i)
 
@@ -1200,14 +1270,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         number_of_pairs = min((len(proposal.buys), len(proposal.sells))) if self._hanging_orders_enabled else 0
 
         if len(proposal.buys) > 0:
-            if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
-                price_quote_str = [f"{buy.size.normalize()} {self.base_asset}, "
-                                   f"{buy.price.normalize()} {self.quote_asset}"
-                                   for buy in proposal.buys]
-                self.logger().info(
-                    f"({self.trading_pair}) Creating {len(proposal.buys)} bid orders "
-                    f"at (Size, Price): {price_quote_str}"
-                )
+            ### Stonksi ###
+            #if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
+            #    price_quote_str = [f"{buy.size.normalize()} {self.base_asset}, "
+            #                       f"{buy.price.normalize()} {self.quote_asset}"
+            #                       for buy in proposal.buys]
+            #    self.logger().info(
+            #        f"({self.trading_pair}) Creating {len(proposal.buys)} bid orders "
+            #        f"at (Size, Price): {price_quote_str}"
+            #    )
+            ### Stonksi ###
             for idx, buy in enumerate(proposal.buys):
                 bid_order_id = self.c_buy_with_specific_market(
                     self._market_info,
@@ -1223,14 +1295,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         self._hanging_orders_tracker.add_current_pairs_of_proposal_orders_executed_by_strategy(
                             CreatedPairOfOrders(order, None))
         if len(proposal.sells) > 0:
-            if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
-                price_quote_str = [f"{sell.size.normalize()} {self.base_asset}, "
-                                   f"{sell.price.normalize()} {self.quote_asset}"
-                                   for sell in proposal.sells]
-                self.logger().info(
-                    f"({self.trading_pair}) Creating {len(proposal.sells)} ask "
-                    f"orders at (Size, Price): {price_quote_str}"
-                )
+            ### Stonksi ###
+            #if self._logging_options & self.OPTION_LOG_CREATE_ORDER:
+            #    price_quote_str = [f"{sell.size.normalize()} {self.base_asset}, "
+            #                       f"{sell.price.normalize()} {self.quote_asset}"
+            #                       for sell in proposal.sells]
+            #    self.logger().info(
+            #        f"({self.trading_pair}) Creating {len(proposal.sells)} ask "
+            #        f"orders at (Size, Price): {price_quote_str}"
+            #    )
+            ### Stonksi ###
             for idx, sell in enumerate(proposal.sells):
                 ask_order_id = self.c_sell_with_specific_market(
                     self._market_info,

@@ -50,3 +50,9 @@ class MarketTradingPairTuple(NamedTuple):
 
     def order_book_ask_entries(self) -> Iterator[ClientOrderBookRow]:
         return self.market.order_book_ask_entries(self.trading_pair)
+
+
+    ### Stonksi addition ###
+    def get_next_price(self, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
+        return self.market.get_next_price(self.trading_pair, is_buy, price)
+    ### Stonksi addition ###

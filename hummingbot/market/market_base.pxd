@@ -45,3 +45,8 @@ cdef class MarketBase(NetworkIterator):
                           object order_side,
                           object amount,
                           object price)
+
+
+    ### Stonksi addition ###
+    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price)
+    ### Stonksi addition ###

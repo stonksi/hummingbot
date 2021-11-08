@@ -356,4 +356,21 @@ pure_market_making_config_map = {
                   type_str="bool",
                   default=True,
                   validator=validate_bool),
+    
+
+    ### Stonksi addition ###
+    "order_optimization_failsafe_enabled":
+        ConfigVar(key="order_optimization_failsafe_enabled",
+                  prompt="Do you want to enable order optimization fail safe? (Yes/No) >>> ",
+                  required_if=lambda: pure_market_making_config_map.get("order_optimization_enabled").value,
+                  type_str="bool",
+                  default=True,
+                  validator=validate_bool),
+    "inventory_max_available_quote_balance":
+        ConfigVar(key="inventory_max_available_quote_balance",
+                  prompt="Set max available balance for quote asset? (-1 = disabled) >>> ",
+                  type_str="decimal",
+                  validator=lambda v: validate_decimal(v, -1, inclusive=True),
+                  default=-1),
+    ### Stonksi addition ###
 }
