@@ -1374,7 +1374,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         if non_hanging_orders_non_cancelled_buys and proposal is not None:
             proposal.buys.clear()
 
-        non_hanging_orders_non_cancelled_sells = [o for o in self.active_non_hanging_orders if o.is_sell and not
+        non_hanging_orders_non_cancelled_sells = [o for o in self.active_non_hanging_orders if not o.is_buy and not
                                                 self._hanging_orders_tracker.is_potential_hanging_order(o)]
         
         if non_hanging_orders_non_cancelled_sells and proposal is not None:
