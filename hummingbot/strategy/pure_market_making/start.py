@@ -57,6 +57,7 @@ def start(self):
         ### Stonksi addition ###
         order_optimization_failsafe_enabled = c_map.get("order_optimization_failsafe_enabled").value
         inventory_max_available_quote_balance = c_map.get("inventory_max_available_quote_balance").value
+        order_amount_use_quote = c_map.get("order_amount_use_quote").value
         ### Stonksi addition ###
 
         trading_pair: str = raw_trading_pair
@@ -124,6 +125,7 @@ def start(self):
             ### Stonksi addition ###
             order_optimization_failsafe_enabled=order_optimization_failsafe_enabled,
             inventory_max_available_quote_balance=inventory_max_available_quote_balance,
+            order_amount_use_quote=order_amount_use_quote,
             ### Stonksi addition ###
         )
     except Exception as e:

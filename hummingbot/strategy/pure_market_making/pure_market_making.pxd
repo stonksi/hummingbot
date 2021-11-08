@@ -57,7 +57,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         ### Stonksi addition ###
         bint _order_optimization_failsafe_enabled
-        object _inventory_max_available_quote_balance   
+        object _inventory_max_available_quote_balance  
+        bint _order_amount_use_quote 
+        bint _apply_quote_logic
         ### Stonksi addition ###
 
     cdef object c_get_mid_price(self)

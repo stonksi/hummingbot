@@ -138,4 +138,7 @@ order_optimization_failsafe_enabled: null
 
 # Max quote balance available to trading bot? (-1 = disabled)
 inventory_max_available_quote_balance: null
+
+# Use quote asset for order amount instead of base asset (true/false).
+order_amount_use_quote: null
 ### Stonksi addition ###

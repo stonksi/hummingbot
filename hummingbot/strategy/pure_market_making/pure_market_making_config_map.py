@@ -372,5 +372,11 @@ pure_market_making_config_map = {
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, -1, inclusive=True),
                   default=-1),
+    "order_amount_use_quote":
+        ConfigVar(key="order_amount_use_quote",
+                  prompt=None,
+                  type_str="bool",
+                  default=False,
+                  validator=validate_bool),
     ### Stonksi addition ###
 }

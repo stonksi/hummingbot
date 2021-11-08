@@ -100,6 +100,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     ### Stonksi addition ###
                     order_optimization_failsafe_enabled: bool = True,
                     inventory_max_available_quote_balance: Decimal = s_decimal_neg_one,
+                    order_amount_use_quote: bool = False,
                     ### Stonksi addition ###
                     ):
         if price_ceiling != s_decimal_neg_one and price_ceiling < price_floor:
@@ -157,6 +158,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         ### Stonksi addition ###
         self._order_optimization_failsafe_enabled = order_optimization_failsafe_enabled
         self._inventory_max_available_quote_balance = inventory_max_available_quote_balance
+        self._order_amount_use_quote = order_amount_use_quote
+        self._apply_quote_logic = order_amount_use_quote
         ### Stonksi addition ###
 
 
@@ -474,6 +477,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def inventory_max_available_quote_balance(self) -> Decimal:
         return self._inventory_max_available_quote_balance
+
+    @property
+    def order_amount_use_quote(self) -> bool:
+        return self._order_amount_use_quote
     ### Stonksi addition ###
 
 
@@ -744,6 +751,48 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     self.logger().warning(f"WARNING: Some markets are not connected or are down at the moment. Market "
                                           f"making may be dangerous when markets or networks are unstable.")
 
+            
+            ### Stonksi addition ###
+            if self._apply_quote_logic:
+                mid_price = self._market_info.get_mid_price()
+                self._order_amount /= mid_price
+                if self._ask_order_optimization_depth > 0:
+                    self._ask_order_optimization_depth /= mid_price
+                if self._bid_order_optimization_depth > 0:
+                    self._bid_order_optimization_depth /= mid_price
+                self._apply_quote_logic = False
+
+                if self._order_amount >= 100:
+                    self._order_amount = round(self._order_amount,0)            
+                elif self._order_amount >= 10:
+                    self._order_amount = round(self._order_amount,1) 
+                elif self._order_amount >= 1:
+                    self._order_amount = round(self._order_amount,2) 
+                elif self._order_amount >= 0.1:
+                    self._order_amount = round(self._order_amount,3) 
+                elif self._order_amount >= 0.01:
+                    self._order_amount = round(self._order_amount,4) 
+                elif self._order_amount >= 0.001:
+                    self._order_amount = round(self._order_amount,5) 
+                elif self._order_amount >= 0.0001:
+                    self._order_amount = round(self._order_amount,6) 
+                elif self._order_amount >= 0.00001:
+                    self._order_amount = round(self._order_amount,7) 
+                elif self._order_amount >= 0.000001:
+                    self._order_amount = round(self._order_amount,8) 
+                elif self._order_amount >= 0.0000001:
+                    self._order_amount = round(self._order_amount,9) 
+                elif self._order_amount >= 0.00000001:
+                    self._order_amount = round(self._order_amount,10) 
+                elif self._order_amount >= 0.000000001:
+                    self._order_amount = round(self._order_amount,11) 
+                elif self._order_amount >= 0.0000000001:
+                    self._order_amount = round(self._order_amount,12) 
+                elif self._order_amount >= 0.00000000001:
+                    self._order_amount = round(self._order_amount,13) 
+            ### Stonksi addition ###
+            
+            
             proposal = None
             if self._create_timestamp <= self._current_timestamp:
                 # 1. Create base order proposals
@@ -1088,6 +1137,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"({market_info.trading_pair}) Maker buy order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
+
+
+                    ### Stonksi addition ###
+                    self.notify_hb_app_with_timestamp(
+                        f"Maker BUY order {order_filled_event.amount} {market_info.base_asset} @ "
+                        f"{order_filled_event.price} {market_info.quote_asset} filled."
+                    )     
+                    ### Stonksi addition ###  
+
             else:
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
@@ -1095,6 +1153,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"({market_info.trading_pair}) Maker sell order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
+
+
+                    ### Stonksi addition ###
+                    self.notify_hb_app_with_timestamp(
+                        f"Maker SELL order {order_filled_event.amount} {market_info.base_asset} @ "
+                        f"{order_filled_event.price} {market_info.quote_asset} filled."
+                    )        
+                    ### Stonksi addition ###  
+
 
             if self._inventory_cost_price_delegate is not None:
                 self._inventory_cost_price_delegate.process_order_fill_event(order_filled_event)
@@ -1116,10 +1183,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
-                )
+                ### Stonksi ###
+                #self.notify_hb_app_with_timestamp(
+                #    f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                #    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+                #)
+                ### Stonksi ###
                 return
 
         # delay order creation by filled_order_dalay (in seconds)
@@ -1135,9 +1204,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        ### Stonksi ###
+        #self.notify_hb_app_with_timestamp(
+        #    f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+        #    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        ### Stonksi ###
         )
 
     cdef c_did_complete_sell_order(self, object order_completed_event):
@@ -1156,10 +1227,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
-                )
+                ### Stonksi ###
+                #self.notify_hb_app_with_timestamp(
+                #    f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                #    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+                #)
+                ### Stonksi ###
                 return
 
         # delay order creation by filled_order_dalay (in seconds)
@@ -1175,10 +1248,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
-        )
+        ### Stonksi ###
+        #self.notify_hb_app_with_timestamp(
+        #    f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
+        #    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        #)
+        ### Stonksi ###
 
     cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices):
         if len(current_prices) != len(proposal_prices):
