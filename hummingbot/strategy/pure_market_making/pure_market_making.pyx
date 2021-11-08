@@ -839,10 +839,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object quote_balance = market.c_get_available_balance(self.quote_asset)
 
 
-            ### Stonksi addition ###
-            if 0 <= self._inventory_max_available_quote_balance < quote_balance:
-                quote_balance = self._inventory_max_available_quote_balance
-            ### Stonksi addition ###
+        ### Stonksi addition ###
+        if 0 <= self._inventory_max_available_quote_balance < quote_balance:
+            quote_balance = self._inventory_max_available_quote_balance
+        ### Stonksi addition ###
 
 
         for order in orders:
