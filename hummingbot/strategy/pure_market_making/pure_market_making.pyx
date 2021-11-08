@@ -1208,8 +1208,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         #self.notify_hb_app_with_timestamp(
         #    f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
         #    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        #)
         ### Stonksi ###
-        )
+        
 
     cdef c_did_complete_sell_order(self, object order_completed_event):
         cdef:
