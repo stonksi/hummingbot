@@ -1289,7 +1289,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             list active_orders = self.active_non_hanging_orders
             list active_buy_prices = []
             list active_sells = []
-            bint to_defer_canceling = False
+            #bint to_defer_canceling = False ### Stonksi ###
+            ### Stonksi addition ###
+            bint cancel_buys = True
+            bint cancel_sells = True
+            ### Stonksi addition ###
         if len(active_orders) == 0:
             return
         if proposal is not None and \
@@ -1299,17 +1303,46 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             active_sell_prices = [Decimal(str(o.price)) for o in active_orders if not o.is_buy]
             proposal_buys = [buy.price for buy in proposal.buys]
             proposal_sells = [sell.price for sell in proposal.sells]
+            
+            ### Stonksi ###
+            #if self.c_is_within_tolerance(active_buy_prices, proposal_buys) and \
+            #        self.c_is_within_tolerance(active_sell_prices, proposal_sells):
+            #    to_defer_canceling = True
+            ### Stonksi ###
 
-            if self.c_is_within_tolerance(active_buy_prices, proposal_buys) and \
-                    self.c_is_within_tolerance(active_sell_prices, proposal_sells):
-                to_defer_canceling = True
+            ### Stonksi addition ###
+            if self.c_is_within_tolerance(active_buy_prices, proposal_buys):
+                cancel_buys = False
+            
+            if self.c_is_within_tolerance(active_sell_prices, proposal_sells):
+                cancel_sells = False
+            ### Stonksi addition ###
 
-        if not to_defer_canceling:
+        ### Stonksi addition ###
+        if cancel_buys or cancel_sells:
             self._hanging_orders_tracker.update_strategy_orders_with_equivalent_orders()
+
+        if cancel_buys:
             for order in self.active_non_hanging_orders:
                 # If is about to be added to hanging_orders then don't cancel
-                if not self._hanging_orders_tracker.is_potential_hanging_order(order):
+                if order.is_buy and not self._hanging_orders_tracker.is_potential_hanging_order(order):
                     self.c_cancel_order(self._market_info, order.client_order_id)
+
+        if cancel_sells:
+            for order in self.active_non_hanging_orders:
+                # If is about to be added to hanging_orders then don't cancel
+                if order.is_sell and not self._hanging_orders_tracker.is_potential_hanging_order(order):
+                    self.c_cancel_order(self._market_info, order.client_order_id)
+        ### Stonksi addition ###
+
+        ### Stonksi ###
+        #if not to_defer_canceling:
+        #    self._hanging_orders_tracker.update_strategy_orders_with_equivalent_orders()
+        #    for order in self.active_non_hanging_orders:
+        #        # If is about to be added to hanging_orders then don't cancel
+        #        if not self._hanging_orders_tracker.is_potential_hanging_order(order):
+        #            self.c_cancel_order(self._market_info, order.client_order_id)
+        ### Stonksi ###
         # else:
         #     self.set_timers()
 
@@ -1329,13 +1362,33 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_cancel_order(self._market_info, order.client_order_id)
 
     cdef bint c_to_create_orders(self, object proposal):
-        non_hanging_orders_non_cancelled = [o for o in self.active_non_hanging_orders if not
-                                            self._hanging_orders_tracker.is_potential_hanging_order(o)]
+        ### Stonksi ###
+        #non_hanging_orders_non_cancelled = [o for o in self.active_non_hanging_orders if not
+        #                                    self._hanging_orders_tracker.is_potential_hanging_order(o)]
+        ### Stonksi ###
+
+        ### Stonksi addition ###
+        non_hanging_orders_non_cancelled_buys = [o for o in self.active_non_hanging_orders if o.is_buy and not
+                                                self._hanging_orders_tracker.is_potential_hanging_order(o)]
+
+        if non_hanging_orders_non_cancelled_buys and proposal is not None:
+            proposal.buys.clear()
+
+        non_hanging_orders_non_cancelled_sells = [o for o in self.active_non_hanging_orders if o.is_sell and not
+                                                self._hanging_orders_tracker.is_potential_hanging_order(o)]
+        
+        if non_hanging_orders_non_cancelled_sells and proposal is not None:
+            proposal.sells.clear()
+        ### Stonksi addition ###
+
         return (self._create_timestamp < self._current_timestamp
                 and (not self._should_wait_order_cancel_confirmation or
                      len(self._sb_order_tracker.in_flight_cancels) == 0)
                 and proposal is not None
-                and len(non_hanging_orders_non_cancelled) == 0)
+                #and len(non_hanging_orders_non_cancelled) == 0)### Stonksi ###
+                ### Stonksi addition ###
+                and (len(non_hanging_orders_non_cancelled_buys) == 0 or len(non_hanging_orders_non_cancelled_sells) == 0))
+                ### Stonksi addition ###
 
     cdef c_execute_orders_proposal(self, object proposal):
         cdef:
