@@ -611,7 +611,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 amount_orig = self._order_amount + ((level_for_calculation - 1) * self._order_level_amount)
                 level = "hang"
             else:
-                amount_orig = ""
+                amount_orig = "" if level is None else self._order_amount
 
             data.append([
                 level,
