@@ -44,6 +44,10 @@ from hummingbot.connector.exchange.crypto_com import crypto_com_constants as CON
 from hummingbot.core.data_type.common import OpenOrder
 from hummingbot.core.api_throttler.async_throttler import AsyncThrottler
 
+### Stonksi addition ###
+from random import uniform
+### Stonksi addition ###
+
 ctce_logger = None
 s_decimal_NaN = Decimal("nan")
 
@@ -53,10 +57,17 @@ class CryptoComExchange(ExchangeBase):
     CryptoComExchange connects with Crypto.com exchange and provides order book pricing, user account tracking and
     trading functionality.
     """
+    # API_CALL_TIMEOUT = 10.0
+    # SHORT_POLL_INTERVAL = 5.0
+    # UPDATE_ORDER_STATUS_MIN_INTERVAL = 10.0
+    # LONG_POLL_INTERVAL = 120.0
+
+    ### Stonksi addition ###
     API_CALL_TIMEOUT = 10.0
-    SHORT_POLL_INTERVAL = 5.0
-    UPDATE_ORDER_STATUS_MIN_INTERVAL = 10.0
-    LONG_POLL_INTERVAL = 120.0
+    SHORT_POLL_INTERVAL = uniform(4.5,5.5)
+    UPDATE_ORDER_STATUS_MIN_INTERVAL = uniform(9,11)
+    LONG_POLL_INTERVAL = uniform(110,130)
+    ### Stonksi addition ###
 
     @classmethod
     def logger(cls) -> HummingbotLogger:
