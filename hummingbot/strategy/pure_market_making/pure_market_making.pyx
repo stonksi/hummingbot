@@ -1040,19 +1040,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object own_buy_size = s_decimal_zero
             object own_sell_size = s_decimal_zero
 
-        ### Stonksi ###
-        # for order in self.active_orders:
-        #     if order.is_buy:
-        #         own_buy_size = order.quantity
-        #     else:
-        #         own_sell_size = order.quantity
-        ### Stonksi ###
+        for order in self.active_orders:
+            if order.is_buy:
+                own_buy_size += order.quantity
+            else:
+                own_sell_size += order.quantity
 
         if len(proposal.buys) > 0:
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
             top_bid_price = self._market_info.get_price_for_volume(
-            #    False, self._bid_order_optimization_depth + own_buy_size).result_price ### Stonksi ###
-                False, self._bid_order_optimization_depth).result_price
+                False, self._bid_order_optimization_depth + own_buy_size).result_price
             price_quantum = market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_bid_price
@@ -1083,8 +1080,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
             top_ask_price = self._market_info.get_price_for_volume(
-            #    True, self._ask_order_optimization_depth + own_sell_size).result_price ### Stonksi ###
-                True, self._ask_order_optimization_depth).result_price
+                True, self._ask_order_optimization_depth + own_sell_size).result_price
             price_quantum = market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_ask_price
