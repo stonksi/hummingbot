@@ -728,16 +728,30 @@ class CryptoComExchange(ExchangeBase):
         cancellation_results = []
         try:
             tasks = []
+            ### Stonksi addition ###
+            trading_pairs = []
+            ### Stonksi addition ###
 
             for _, order in tracked_orders:
-                api_params = {
-                    "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
-                    "order_id": order.exchange_order_id,
-                }
-                tasks.append(self._api_request(method="post",
-                                               path_url=CONSTANTS.CANCEL_ORDER_PATH_URL,
-                                               params=api_params,
-                                               is_auth_required=True))
+                ### Stonksi ###
+                # api_params = {
+                #     "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
+                #     "order_id": order.exchange_order_id,
+                # }
+                # tasks.append(self._api_request(method="post",
+                #                                path_url=CONSTANTS.CANCEL_ORDER_PATH_URL,
+                #                                params=api_params,
+                #                                is_auth_required=True))
+                ### Stonksi ###
+                if order.trading_pair not in trading_pairs:
+                    trading_pairs.append(order.trading_pair)
+                    api_params = {
+                        "instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(order.trading_pair),
+                    }
+                    tasks.append(self._api_request(method="post",
+                                                   path_url=CONSTANTS.CANCEL_ALL_ORDERS_PATH_URL,
+                                                   params=api_params,
+                                                   is_auth_required=True))
 
             await safe_gather(*tasks)
 
@@ -860,3 +874,40 @@ class CryptoComExchange(ExchangeBase):
                 )
             )
         return ret_val
+
+
+    ### Stonksi addition ###
+    def cancel_all_orders(self, trading_pair: str):
+        """
+        Cancel all orders for a trading pair. This function returns immediately.
+        To get the cancellation result, you'll have to wait for OrderCancelledEvent.
+        :param trading_pair: The market (e.g. BTC-USDT) of the order.
+        """
+        safe_ensure_future(self._execute_cancel_all_orders(trading_pair))
+        return trading_pair
+    
+    async def _execute_cancel_all_orders(self, trading_pair: str) -> str:
+        """
+        Executes order cancellation process by first calling cancel-all-orders API. The API result doesn't confirm whether
+        the cancellation is successful, it simply states it receives the request.
+        :param trading_pair: The market trading pair
+        order.last_state to change to CANCELED
+        """
+        try:
+            await self._api_request(
+                "post",
+                CONSTANTS.CANCEL_ALL_ORDERS_PATH_URL,
+                {"instrument_name": crypto_com_utils.convert_to_exchange_trading_pair(trading_pair)},
+                True
+            )
+            return trading_pair
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            self.logger().network(
+                f"Failed to cancel all orders for {trading_pair}: {str(e)}",
+                exc_info=True,
+                app_warning_msg=f"Failed to cancel all orders for {trading_pair} on CryptoCom. "
+                                f"Check API key and network connection."
+            )
+    ### Stonksi addition ###

@@ -500,4 +500,10 @@ cdef class MarketBase(NetworkIterator):
     
     def get_next_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> Decimal:
         return self.c_get_next_price(trading_pair, is_buy, price)
+    
+    cdef c_cancel_all_orders(self, str trading_pair):
+        raise NotImplementedError
+    
+    def cancel_all_orders(self, trading_pair: str):
+        return self.c_cancel_all_orders(trading_pair)
     ### Stonksi addition ###

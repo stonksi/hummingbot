@@ -22,6 +22,10 @@ GET_ACCOUNT_SUMMARY_PATH_URL = "/private/get-account-summary"
 GET_ORDER_DETAIL_PATH_URL = "/private/get-order-detail"
 GET_OPEN_ORDERS_PATH_URL = "/private/get-open-orders"
 
+### Stonksi addition ###
+CANCEL_ALL_ORDERS_PATH_URL = "private/cancel-all-orders"
+### Stonksi addition ###
+
 # Crypto.com has a per method API limit
 
 RATE_LIMITS = [
@@ -33,6 +37,10 @@ RATE_LIMITS = [
     RateLimit(limit_id=GET_OPEN_ORDERS_PATH_URL, limit=3, time_interval=0.1),
     RateLimit(limit_id=GET_ORDER_BOOK_PATH_URL, limit=100, time_interval=1),
     RateLimit(limit_id=GET_TICKER_PATH_URL, limit=100, time_interval=1),
+    
+    ### Stonksi addition ###
+    RateLimit(limit_id=CANCEL_ALL_ORDERS_PATH_URL, limit=15, time_interval=0.1),
+    ### Stonksi addition ###
 ]
 
 

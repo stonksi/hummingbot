@@ -444,3 +444,16 @@ cdef class ConnectorBase(NetworkIterator):
         # Assume (market, exchange_trade_id, trading_pair) are unique. Also order has to be recorded in Order table
         return (not TradeFillOrderDetails(self.display_name, exchange_trade_id, trading_pair) in self._current_trade_fills) and \
                (exchange_order_id in set(self._exchange_order_ids.keys()))
+
+
+    ### Stonksi addition ###
+    cdef c_cancel_all_orders(self, str trading_pair):
+        self.cancel_all_orders(trading_pair)
+
+    def cancel_all_orders(self, trading_pair: str):
+        """
+        Cancel all orders.
+        :param trading_pair: The market (e.g. BTC-USDT) of the order.
+        """
+        raise NotImplementedError
+    ### Stonksi addition ###
