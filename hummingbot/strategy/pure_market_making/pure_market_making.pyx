@@ -1079,7 +1079,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
-            top_ask_price = market.get_price_for_volume(
+            top_ask_price = self._market_info.get_price_for_volume(
                 True, self._ask_order_optimization_depth + own_sell_size).result_price
             price_quantum = market.c_get_order_price_quantum(
                 self.trading_pair,
