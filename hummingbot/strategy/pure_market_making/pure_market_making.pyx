@@ -1056,7 +1056,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 False, self._bid_order_optimization_depth).result_price)
 
             for order in self.active_non_hanging_orders:
-                if order.is_buy and order.price >= top_bid_price
+                if order.is_buy and order.price >= top_bid_price:
                     own_buy_size += order.quantity
 
             if own_buy_size > 0:
@@ -1100,7 +1100,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 True, self._ask_order_optimization_depth).result_price)
 
             for order in self.active_non_hanging_orders:
-                if not order.is_buy and order.price <= top_ask_price
+                if not order.is_buy and order.price <= top_ask_price:
                     own_sell_size += order.quantity
 
             if own_sell_size > 0:
