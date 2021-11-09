@@ -1039,6 +1039,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ExchangeBase market = self._market_info.market
             object own_buy_size = s_decimal_zero
             object own_sell_size = s_decimal_zero
+            object top_bid_price = s_decimal_zero
+            object top_ask_price = s_decimal_zero
 
         # for order in self.active_non_hanging_orders:
         #     if order.is_buy:
@@ -1048,12 +1050,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.buys) > 0:
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
+            ### Stonksi ###
             # top_bid_price = Decimal(self._market_info.get_price_for_volume(
             #     False, self._bid_order_optimization_depth + own_buy_size).result_price)
+            ### Stonksi ###
 
-            ### Stonksi addition ###
-            top_bid_price = Decimal(self._market_info.get_price_for_volume(
-                False, self._bid_order_optimization_depth).result_price)
+            
+            ### Stonksi addition ###           
+            if (self._bid_order_optimization_depth > 0):
+                top_bid_price = Decimal(self._market_info.get_price_for_volume(
+                    False, self._bid_order_optimization_depth).result_price)
+            else:
+                top_bid_price = Decimal(self._market_info.get_price(False))
 
             for order in self.active_non_hanging_orders:
                 if order.is_buy and order.price >= top_bid_price:
@@ -1091,13 +1099,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
+            ### Stonksi ###
             # top_ask_price = Decimal(self._market_info.get_price_for_volume(
             #     True, self._ask_order_optimization_depth + own_sell_size).result_price)
+            ### Stonksi ###
 
 
             ### Stonksi addition ###
-            top_ask_price = Decimal(self._market_info.get_price_for_volume(
-                True, self._ask_order_optimization_depth).result_price)
+            if (self._ask_order_optimization_depth > 0):
+                top_ask_price = Decimal(self._market_info.get_price_for_volume(
+                    True, self._ask_order_optimization_depth).result_price)
+            else:
+                top_ask_price = Decimal(self._market_info.get_price(True))
 
             for order in self.active_non_hanging_orders:
                 if not order.is_buy and order.price <= top_ask_price:
