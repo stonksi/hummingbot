@@ -40,5 +40,5 @@ cdef class OrderBook(PubSub):
 
 
     ### Stonksi addition ###
-    cdef OrderBookQueryResult c_get_next_price(self, bint is_buy, double price)
+    cdef double c_get_next_price(self, bint is_buy, double price) except? -1
     ### Stonksi addition ###

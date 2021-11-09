@@ -501,23 +501,33 @@ cdef class OrderBook(PubSub):
 
 
     ### Stonksi addition ###
-    cdef OrderBookQueryResult c_get_next_price(self, bint is_buy, double price):
+    cdef double c_get_next_price(self, bint is_buy, double price) except? -1:
         cdef:
-            double result_price = NaN
+            OrderBookEntry entry
+            set[OrderBookEntry] *book = ref(self._ask_book) if is_buy else ref(self._bid_book)
+            set[OrderBookEntry].reverse_iterator bid_iterator
+            set[OrderBookEntry].iterator ask_iterator
+
+        if deref(book).size() < 1:
+            raise EnvironmentError("Order book is empty - no price quote is possible.")
 
         if is_buy:
-            for order_book_row in self.ask_entries():
-                if order_book_row.price > price:
-                    result_price = order_book_row.price
-                    break                
+            ask_iterator = self._ask_book.begin()
+            while ask_iterator != self._ask_book.end():
+                entry = deref(ask_iterator) 
+                if entry.getPrice() > price:
+                    return entry.getPrice()
+                else:
+                    inc(ask_iterator)         
         else:
-            for order_book_row in self.bid_entries():
-                if order_book_row.price < price:
-                    result_price = order_book_row.price
-                    break
-
-        return OrderBookQueryResult(price, NaN, result_price, NaN)
+            bid_iterator = self._bid_book.rbegin()
+            while bid_iterator != self._bid_book.rend():
+                entry = deref(bid_iterator) 
+                if entry.getPrice() < price:
+                    return entry.getPrice()
+                else:
+                    inc(bid_iterator) 
     
-    def get_next_price(self, bint is_buy, double price) -> OrderBookQueryResult:
+    def get_next_price(self, bint is_buy, double price) -> float:
         return self.c_get_next_price(is_buy, price)
     ### Stonksi addition ###

@@ -483,17 +483,21 @@ cdef class MarketBase(NetworkIterator):
 
 
     ### Stonksi addition ###
-    cdef ClientOrderBookQueryResult c_get_next_price(self, str trading_pair, bint is_buy, object price):
+    cdef object c_get_next_price(self, str trading_pair, bint is_buy, object price):
+        """
+        :returns: Next bid/ask price for a specific trading pair
+        """
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
-            OrderBookQueryResult result = order_book.c_get_next_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
-        return ClientOrderBookQueryResult(query_price,
-                                          s_decimal_NaN,
-                                          result_price,
-                                          s_decimal_NaN)
+            object next_price
+        try:
+            next_price = Decimal(order_book.c_get_next_price(is_buy))
+        except EnvironmentError as e:
+            self.logger().warning(f"{'Ask' if is_buy else 'Buy'} orderbook for {trading_pair} is empty.")
+            return s_decimal_NaN
+
+        return self.c_quantize_order_price(trading_pair, next_price)
     
-    def get_next_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
+    def get_next_price(self, trading_pair: str, is_buy: bool, price: Decimal) -> Decimal:
         return self.c_get_next_price(trading_pair, is_buy, price)
     ### Stonksi addition ###

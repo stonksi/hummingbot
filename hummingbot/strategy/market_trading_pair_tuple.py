@@ -53,6 +53,6 @@ class MarketTradingPairTuple(NamedTuple):
 
 
     ### Stonksi addition ###
-    def get_next_price(self, is_buy: bool, price: Decimal) -> ClientOrderBookQueryResult:
+    def get_next_price(self, is_buy: bool, price: Decimal) -> Decimal:
         return self.market.get_next_price(self.trading_pair, is_buy, price)
     ### Stonksi addition ###
