@@ -1042,9 +1042,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         for order in self.active_orders:
             if order.is_buy:
-                own_buy_size = order.quantity
+                own_buy_size += order.quantity
             else:
-                own_sell_size = order.quantity
+                own_sell_size += order.quantity
 
         if len(proposal.buys) > 0:
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
