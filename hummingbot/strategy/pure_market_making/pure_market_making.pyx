@@ -1040,16 +1040,31 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object own_buy_size = s_decimal_zero
             object own_sell_size = s_decimal_zero
 
-        for order in self.active_orders:
-            if order.is_buy:
-                own_buy_size = order.quantity
-            else:
-                own_sell_size = order.quantity
+        # for order in self.active_non_hanging_orders:
+        #     if order.is_buy:
+        #         own_buy_size = order.quantity
+        #     else:
+        #         own_sell_size = order.quantity
 
         if len(proposal.buys) > 0:
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
+            # top_bid_price = Decimal(self._market_info.get_price_for_volume(
+            #     False, self._bid_order_optimization_depth + own_buy_size).result_price)
+
+            ### Stonksi addition ###
             top_bid_price = Decimal(self._market_info.get_price_for_volume(
-                False, self._bid_order_optimization_depth + own_buy_size).result_price)
+                False, self._bid_order_optimization_depth).result_price)
+
+            for order in self.active_non_hanging_orders:
+                if order.is_buy and order.price >= top_bid_price
+                    own_buy_size += order.quantity
+
+            if own_buy_size > 0:
+                top_bid_price = Decimal(self._market_info.get_price_for_volume(
+                    False, self._bid_order_optimization_depth + own_buy_size).result_price)
+            ### Stonksi addition ###
+
+
             price_quantum = Decimal(market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_bid_price
@@ -1072,12 +1087,28 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
 
             for i, proposed in enumerate(proposal.buys):
-                proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
+                proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
+            # top_ask_price = Decimal(self._market_info.get_price_for_volume(
+            #     True, self._ask_order_optimization_depth + own_sell_size).result_price)
+
+
+            ### Stonksi addition ###
             top_ask_price = Decimal(self._market_info.get_price_for_volume(
-                True, self._ask_order_optimization_depth + own_sell_size).result_price)
+                True, self._ask_order_optimization_depth).result_price)
+
+            for order in self.active_non_hanging_orders:
+                if not order.is_buy and order.price <= top_ask_price
+                    own_sell_size += order.quantity
+
+            if own_sell_size > 0:
+                top_ask_price = Decimal(self._market_info.get_price_for_volume(
+                    True, self._ask_order_optimization_depth + own_sell_size).result_price)
+            ### Stonksi addition ###
+
+
             price_quantum = Decimal(market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_ask_price
@@ -1098,7 +1129,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ### Stonksi addition ###
 
             for i, proposed in enumerate(proposal.sells):
-                proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price) * (1 + self.order_level_spread * i)
+                proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:
