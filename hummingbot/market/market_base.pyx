@@ -491,7 +491,7 @@ cdef class MarketBase(NetworkIterator):
             OrderBook order_book = self.c_get_order_book(trading_pair)
             object next_price
         try:
-            next_price = Decimal(order_book.c_get_next_price(is_buy))
+            next_price = Decimal(order_book.c_get_next_price(is_buy, price))
         except EnvironmentError as e:
             self.logger().warning(f"{'Ask' if is_buy else 'Buy'} orderbook for {trading_pair} is empty.")
             return s_decimal_NaN
