@@ -354,7 +354,7 @@ pure_market_making_config_map = {
                          "before creating a new set of orders? "
                          "(Not waiting requires enough available balance) (Yes/No) >>> ",
                   type_str="bool",
-                  default=True,
+                  default=False,
                   validator=validate_bool),
     
 

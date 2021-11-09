@@ -96,7 +96,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     minimum_spread: Decimal = Decimal(0),
                     hb_app_notification: bool = False,
                     order_override: Dict[str, List[str]] = {},
-                    should_wait_order_cancel_confirmation = True,
+                    should_wait_order_cancel_confirmation = False,
                     ### Stonksi addition ###
                     order_optimization_failsafe_enabled: bool = True,
                     inventory_max_available_quote_balance: Decimal = s_decimal_neg_one,

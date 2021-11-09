@@ -126,7 +126,7 @@ take_if_crossed: null
 order_override: null
 
 # If the strategy should wait to receive cancellations confirmation before creating new orders during refresh time
-should_wait_order_cancel_confirmation: True
+should_wait_order_cancel_confirmation: false
 
 # For more detailed information, see:
 # https://docs.hummingbot.io/strategies/pure-market-making/#configuration-parameters
