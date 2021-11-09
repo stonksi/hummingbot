@@ -1048,14 +1048,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.buys) > 0:
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
-            top_bid_price = self._market_info.get_price_for_volume(
-                False, self._bid_order_optimization_depth + own_buy_size).result_price
-            price_quantum = market.c_get_order_price_quantum(
+            top_bid_price = Decimal(self._market_info.get_price_for_volume(
+                False, self._bid_order_optimization_depth + own_buy_size).result_price)
+            price_quantum = Decimal(market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_bid_price
-            )
+            ))
             # Get the price above the top bid
-            price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
+            price_above_bid = Decimal(ceil(top_bid_price / price_quantum) + 1) * price_quantum
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
@@ -1079,14 +1079,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
-            top_ask_price = self._market_info.get_price_for_volume(
-                True, self._ask_order_optimization_depth + own_sell_size).result_price
-            price_quantum = market.c_get_order_price_quantum(
+            top_ask_price = Decimal(self._market_info.get_price_for_volume(
+                True, self._ask_order_optimization_depth + own_sell_size).result_price)
+            price_quantum = Decimal(market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_ask_price
-            )
+            ))
             # Get the price below the top ask
-            price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
+            price_below_ask = Decimal(floor(top_ask_price / price_quantum) - 1) * price_quantum
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
@@ -1100,7 +1100,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             elif self._order_optimization_failsafe_enabled:
                 next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
                 next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                higher_sell_price = Decimal(ceil(next_price / next_price_quantum) - 1) * next_price_quantum    
+                higher_sell_price = Decimal(floor(next_price / next_price_quantum) - 1) * next_price_quantum    
             ### Stonksi addition ###
 
             for i, proposed in enumerate(proposal.sells):
