@@ -1087,7 +1087,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             
 
             ### Stonksi addition ###
-            if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price:
+            if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price and lower_buy_price != price_above_bid:
                 next_price = Decimal(market.c_get_next_price(self.trading_pair, False, lower_buy_price))
                 next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
                 lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + 2) * next_price_quantum
@@ -1135,7 +1135,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             higher_sell_price = Decimal(max(proposal.sells[0].price, price_below_ask))
 
             ### Stonksi addition ###
-            if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price:
+            if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price and higher_sell_price != price_below_ask:
                 next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
                 next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
                 higher_sell_price = Decimal(floor(next_price / next_price_quantum) - 1) * next_price_quantum  
