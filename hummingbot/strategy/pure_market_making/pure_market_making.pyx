@@ -1064,7 +1064,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             #     top_bid_price = Decimal(self._market_info.get_price(False))
 
             for order in self.active_orders:
-                if order.is_buy #and order.price >= top_bid_price:
+                if order.is_buy: #and order.price >= top_bid_price:
                     own_buy_size += order.quantity
 
             # if own_buy_size > 0:
@@ -1113,7 +1113,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             #     top_ask_price = Decimal(self._market_info.get_price(True))
 
             for order in self.active_orders:
-                if not order.is_buy #and order.price <= top_ask_price:
+                if not order.is_buy: #and order.price <= top_ask_price:
                     own_sell_size += order.quantity
 
             #if own_sell_size > 0:
