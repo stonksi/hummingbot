@@ -320,29 +320,31 @@ class MarketsRecorder:
 
     def append_to_csv(self, trade: TradeFill):
         csv_filename = "trades_" + trade.config_file_path[:-4] + ".csv"
-        csv_path = os.path.join(data_path(), csv_filename)
+        ### Stonksi ###
+        # csv_path = os.path.join(data_path(), csv_filename)
 
-        field_names = ("id",)  # id field should be first
-        field_names += tuple(attr for attr in dir(trade) if (not self._is_protected_method(attr) and
-                                                             self._is_primitive_type(getattr(trade, attr)) and
-                                                             (attr not in field_names)))
-        field_data = tuple(getattr(trade, attr) for attr in field_names)
+        # field_names = ("id",)  # id field should be first
+        # field_names += tuple(attr for attr in dir(trade) if (not self._is_protected_method(attr) and
+        #                                                      self._is_primitive_type(getattr(trade, attr)) and
+        #                                                      (attr not in field_names)))
+        # field_data = tuple(getattr(trade, attr) for attr in field_names)
 
-        # adding extra field "age"
-        # // indicates order is a paper order so 'n/a'. For real orders, calculate age.
-        age = pd.Timestamp(int(trade.timestamp / 1e3 - int(trade.order_id[-16:]) / 1e6), unit='s').strftime(
-            '%H:%M:%S') if "//" not in trade.order_id else "n/a"
-        field_names += ("age",)
-        field_data += (age,)
+        # # adding extra field "age"
+        # # // indicates order is a paper order so 'n/a'. For real orders, calculate age.
+        # age = pd.Timestamp(int(trade.timestamp / 1e3 - int(trade.order_id[-16:]) / 1e6), unit='s').strftime(
+        #     '%H:%M:%S') if "//" not in trade.order_id else "n/a"
+        # field_names += ("age",)
+        # field_data += (age,)
 
-        if (os.path.exists(csv_path) and (not self._csv_matches_header(csv_path, field_names))):
-            move(csv_path, csv_path[:-4] + '_old_' + pd.Timestamp.utcnow().strftime("%Y%m%d-%H%M%S") + ".csv")
+        # if (os.path.exists(csv_path) and (not self._csv_matches_header(csv_path, field_names))):
+        #     move(csv_path, csv_path[:-4] + '_old_' + pd.Timestamp.utcnow().strftime("%Y%m%d-%H%M%S") + ".csv")
 
-        if not os.path.exists(csv_path):
-            df_header = pd.DataFrame([field_names])
-            df_header.to_csv(csv_path, mode='a', header=False, index=False)
-        df = pd.DataFrame([field_data])
-        df.to_csv(csv_path, mode='a', header=False, index=False)
+        # if not os.path.exists(csv_path):
+        #     df_header = pd.DataFrame([field_names])
+        #     df_header.to_csv(csv_path, mode='a', header=False, index=False)
+        # df = pd.DataFrame([field_data])
+        # df.to_csv(csv_path, mode='a', header=False, index=False)
+        ### Stonksi ###
 
     def _update_order_status(self,
                              event_tag: int,
