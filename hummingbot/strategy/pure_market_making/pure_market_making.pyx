@@ -1041,6 +1041,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object own_sell_size = s_decimal_zero
             object top_bid_price = s_decimal_zero
             object top_ask_price = s_decimal_zero
+            object own_top_bid_price = s_decimal_zero
+            object own_top_ask_price = s_decimal_zero
 
         # for order in self.active_orders:
         #     if order.is_buy:
@@ -1066,6 +1068,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_non_hanging_orders:
                 if order.is_buy and order.price >= top_bid_price:
                     own_buy_size += order.quantity
+                    if order.price > own_top_bid_price:
+                        own_top_bid_price = order.price
 
             if own_buy_size > 0:
                 top_bid_price = Decimal(self._market_info.get_price_for_volume(
@@ -1093,9 +1097,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + 2) * next_price_quantum
             ### Stonksi addition ###
 
-
-            for i, proposed in enumerate(proposal.buys):
-                proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+            if own_top_bid_price != top_bid_price:
+                for i, proposed in enumerate(proposal.buys):
+                    proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
@@ -1115,6 +1119,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_non_hanging_orders:
                 if not order.is_buy and order.price <= top_ask_price:
                     own_sell_size += order.quantity
+                    if order.price < own_top_ask_price:
+                        own_top_ask_price = order.price
 
             if own_sell_size > 0:
                 top_ask_price = Decimal(self._market_info.get_price_for_volume(
@@ -1141,8 +1147,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 higher_sell_price = Decimal(floor(next_price / next_price_quantum) - 1) * next_price_quantum  
             ### Stonksi addition ###
 
-            for i, proposed in enumerate(proposal.sells):
-                proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+            if own_top_ask_price != top_ask_price:
+                for i, proposed in enumerate(proposal.sells):
+                    proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:
