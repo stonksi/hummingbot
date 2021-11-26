@@ -1039,10 +1039,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ExchangeBase market = self._market_info.market
             object own_buy_size = s_decimal_zero
             object own_sell_size = s_decimal_zero
+            ### Stonksi addition ###
             object top_bid_price = s_decimal_zero
             object top_ask_price = s_decimal_zero
             object own_top_bid_price = s_decimal_zero
             object own_top_ask_price = s_decimal_zero
+            ### Stonksi addition ###
 
         # for order in self.active_orders:
         #     if order.is_buy:
@@ -1082,7 +1084,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_bid_price
             ))
             # Get the price above the top bid
-            price_above_bid = Decimal(ceil(top_bid_price / price_quantum) + 2) * price_quantum
+            ### Stonksi fix ###
+            price_above_bid = top_bid_price
+            i = 1
+            while price_above_bid == top_bid_price:
+                price_above_bid = Decimal(ceil(top_bid_price / price_quantum) + i) * price_quantum
+                i += 1
+            ### Stonksi fix ###
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
@@ -1133,7 +1141,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_ask_price
             ))
             # Get the price below the top ask
-            price_below_ask = Decimal(floor(top_ask_price / price_quantum) - 1) * price_quantum
+            ### Stonksi fix ###
+            price_below_ask = top_ask_price
+            i = 1
+            while price_below_ask == top_ask_price:
+                price_below_ask = Decimal(floor(top_ask_price / price_quantum) - i) * price_quantum
+                i += 1
+            ### Stonksi fix ###
+            
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
