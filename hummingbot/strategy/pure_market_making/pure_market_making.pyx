@@ -1067,8 +1067,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             else:
                 top_bid_price = Decimal(self._market_info.get_price(False))
 
-            for order in self.active_non_hanging_orders:
-                if order.is_buy and order.price >= top_bid_price:
+            for order in self.active_buys:
+                if order.price >= top_bid_price:
                     own_buy_size += order.quantity
                     if order.price > own_top_bid_price:
                         own_top_bid_price = order.price
@@ -1076,40 +1076,40 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if own_buy_size > 0:
                 top_bid_price = Decimal(self._market_info.get_price_for_volume(
                     False, self._bid_order_optimization_depth + own_buy_size).result_price)
-            ### Stonksi addition ###
-
-
-            price_quantum = Decimal(market.c_get_order_price_quantum(
-                self.trading_pair,
-                top_bid_price
-            ))
-            # Get the price above the top bid
-            ### Stonksi fix ###
-            price_above_bid = top_bid_price
-            i = 0
-            while price_above_bid == top_bid_price:
-                i += 1
-                price_above_bid = Decimal(ceil(top_bid_price / price_quantum) + i) * price_quantum                
-            ### Stonksi fix ###
-
-            # If the price_above_bid is lower than the price suggested by the top pricing proposal,
-            # lower the price and from there apply the order_level_spread to each order in the next levels
-            proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
-            lower_buy_price = Decimal(min(proposal.buys[0].price, price_above_bid))
             
-
-            ### Stonksi addition ###
-            if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price and lower_buy_price != price_above_bid:
-                next_price = Decimal(market.c_get_next_price(self.trading_pair, False, lower_buy_price))
-                next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                lower_buy_price = next_price
-                i = 0
-                while lower_buy_price == next_price:
-                    i += 1
-                    lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum              
-            ### Stonksi addition ###
-
             if own_top_bid_price != top_bid_price:
+            ### Stonksi addition ###
+
+                price_quantum = Decimal(market.c_get_order_price_quantum(
+                    self.trading_pair,
+                    top_bid_price
+                ))
+                # Get the price above the top bid
+                ### Stonksi fix ###
+                price_above_bid = top_bid_price
+                i = 0
+                while price_above_bid == top_bid_price:
+                    i += 1
+                    price_above_bid = Decimal(ceil(top_bid_price / price_quantum) + i) * price_quantum                
+                ### Stonksi fix ###
+
+                # If the price_above_bid is lower than the price suggested by the top pricing proposal,
+                # lower the price and from there apply the order_level_spread to each order in the next levels
+                proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
+                lower_buy_price = Decimal(min(proposal.buys[0].price, price_above_bid))
+                
+
+                ### Stonksi addition ###
+                if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price and lower_buy_price != price_above_bid:
+                    next_price = Decimal(market.c_get_next_price(self.trading_pair, False, lower_buy_price))
+                    next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
+                    lower_buy_price = next_price
+                    i = 0
+                    while lower_buy_price == next_price:
+                        i += 1
+                        lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum              
+                ### Stonksi addition ###
+
                 for i, proposed in enumerate(proposal.buys):
                     proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
 
@@ -1128,8 +1128,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             else:
                 top_ask_price = Decimal(self._market_info.get_price(True))
 
-            for order in self.active_non_hanging_orders:
-                if not order.is_buy and order.price <= top_ask_price:
+            for order in self.active_sells:
+                if order.price <= top_ask_price:
                     own_sell_size += order.quantity
                     if order.price < own_top_ask_price:
                         own_top_ask_price = order.price
@@ -1137,40 +1137,40 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if own_sell_size > 0:
                 top_ask_price = Decimal(self._market_info.get_price_for_volume(
                     True, self._ask_order_optimization_depth + own_sell_size).result_price)
-            ### Stonksi addition ###
-
-
-            price_quantum = Decimal(market.c_get_order_price_quantum(
-                self.trading_pair,
-                top_ask_price
-            ))
-            # Get the price below the top ask
-            ### Stonksi fix ###
-            price_below_ask = top_ask_price
-            i = 0
-            while price_below_ask == top_ask_price:
-                i += 1
-                price_below_ask = Decimal(floor(top_ask_price / price_quantum) - i) * price_quantum
-            ### Stonksi fix ###
-            
-
-            # If the price_below_ask is higher than the price suggested by the pricing proposal,
-            # increase your price and from there apply the order_level_spread to each order in the next levels
-            proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
-            higher_sell_price = Decimal(max(proposal.sells[0].price, price_below_ask))
-
-            ### Stonksi addition ###
-            if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price and higher_sell_price != price_below_ask:
-                next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
-                next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                higher_sell_price = next_price
-                i = 0
-                while higher_sell_price == next_price:
-                    i += 1
-                    higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
-            ### Stonksi addition ###
 
             if own_top_ask_price != top_ask_price:
+            ### Stonksi addition ###
+
+                price_quantum = Decimal(market.c_get_order_price_quantum(
+                    self.trading_pair,
+                    top_ask_price
+                ))
+                # Get the price below the top ask
+                ### Stonksi fix ###
+                price_below_ask = top_ask_price
+                i = 0
+                while price_below_ask == top_ask_price:
+                    i += 1
+                    price_below_ask = Decimal(floor(top_ask_price / price_quantum) - i) * price_quantum
+                ### Stonksi fix ###
+                
+
+                # If the price_below_ask is higher than the price suggested by the pricing proposal,
+                # increase your price and from there apply the order_level_spread to each order in the next levels
+                proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
+                higher_sell_price = Decimal(max(proposal.sells[0].price, price_below_ask))
+
+                ### Stonksi addition ###
+                if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price and higher_sell_price != price_below_ask:
+                    next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
+                    next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
+                    higher_sell_price = next_price
+                    i = 0
+                    while higher_sell_price == next_price:
+                        i += 1
+                        higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
+                ### Stonksi addition ###
+
                 for i, proposed in enumerate(proposal.sells):
                     proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
 
