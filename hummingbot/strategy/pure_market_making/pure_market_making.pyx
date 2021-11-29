@@ -429,11 +429,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     @property
     def active_buys(self) -> List[LimitOrder]:
-        return [o for o in self.active_non_hanging_non_cancelled_orders if o.is_buy]
+        return [o for o in self.active_orders if o.is_buy]
 
     @property
     def active_sells(self) -> List[LimitOrder]:
-        return [o for o in self.active_non_hanging_non_cancelled_orders if not o.is_buy]
+        return [o for o in self.active_orders if not o.is_buy]
 
     @property
     def active_non_hanging_orders(self) -> List[LimitOrder]:
@@ -483,10 +483,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return self._order_amount_use_quote
 
     @property
-    def active_non_hanging_non_cancelled_orders(self) -> List[int]:
-        orders = [o for o in self.active_orders if not self._hanging_orders_tracker.is_order_id_in_hanging_orders(o.client_order_id)
+    def active_non_hanging_non_cancelled_order_ids(self) -> List[int]:
+        ids = [o.client_order_id for o in self.active_orders if not self._hanging_orders_tracker.is_order_id_in_hanging_orders(o.client_order_id)
               and not o.client_order_id in self._sb_order_tracker.in_flight_cancels]
-        return orders
+        return ids
     ### Stonksi addition ###
 
 
@@ -1077,7 +1077,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_buys:
                 if order.price >= top_bid_price:
                     own_buy_size += order.quantity
-                    if order.price > own_top_bid_price:
+                    if order.price > own_top_bid_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
                         own_top_bid_price = order.price
 
             if own_buy_size > 0:
@@ -1141,7 +1141,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_sells:
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
-                    if order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero:
+                    if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero) and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
                         own_top_ask_price = order.price
 
             self.logger().warning(f"SELL PRE SELL SIZE: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
