@@ -483,10 +483,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return self._order_amount_use_quote
 
     @property
-    def active_non_hanging_non_cancelled_order_ids(self) -> List[int]:
-        ids = [o.client_order_id for o in self.active_orders if not self._hanging_orders_tracker.is_order_id_in_hanging_orders(o.client_order_id)
-              and not o.client_order_id in self._sb_order_tracker.in_flight_cancels]
-        return ids
+    def active_non_hanging_non_cancelled_orders(self) -> List[LimitOrder]:
+        orders = [o for o in self.active_non_hanging_orders if not o.client_order_id in self._sb_order_tracker.in_flight_cancels]
+        return orders
     ### Stonksi addition ###
 
 
@@ -1356,7 +1355,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         Cancels active non hanging orders if they are older than max age limit
         """
         cdef:
-            list active_orders = self.active_non_hanging_orders
+            list active_orders = self.active_non_hanging_non_cancelled_orders
 
         if active_orders and any(order_age(o) > self._max_order_age for o in active_orders):
             for order in active_orders:
@@ -1370,7 +1369,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             return
 
         cdef:
-            list active_orders = self.active_non_hanging_orders
+            list active_orders = self.active_non_hanging_non_cancelled_orders
             list active_buy_prices = []
             list active_sells = []
             #bint to_defer_canceling = False ### Stonksi ###
@@ -1433,10 +1432,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     # Cancel Non-Hanging, Active Orders if Spreads are below minimum_spread
     cdef c_cancel_orders_below_min_spread(self):
         cdef:
-            list active_orders = self.market_info_to_active_orders.get(self._market_info, [])
+            list active_orders = self.active_non_hanging_non_cancelled_orders
             object price = self.get_price()
-        active_orders = [order for order in active_orders
-                         if order.client_order_id not in self.hanging_order_ids]
+        #ctive_orders = [order for order in active_orders
+                         #if order.client_order_id not in self.hanging_order_ids]
         for order in active_orders:
             negation = -1 if order.is_buy else 1
             if (negation * (order.price - price) / price) < self._minimum_spread:
