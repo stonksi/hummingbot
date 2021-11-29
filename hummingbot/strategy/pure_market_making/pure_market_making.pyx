@@ -713,7 +713,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     # ---------------------------------------------------------------
 
     cdef c_start(self, Clock clock, double timestamp):
-        clock._tick_size = 0.2
+        clock._tick_size = 0.3
         StrategyBase.c_start(self, clock, timestamp)
         self._last_timestamp = timestamp
 
