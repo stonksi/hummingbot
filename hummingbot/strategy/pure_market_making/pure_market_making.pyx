@@ -1122,7 +1122,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.buys):
-                    proposal.buys[j].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+                    proposal.buys[j].price = market.c_quant_order_price(self.trading_pair, lower_buy_price, False)
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
@@ -1184,7 +1184,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.sells):
-                    proposal.sells[j].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+                    proposal.sells[j].price = market.c_quant_order_price(self.trading_pair, higher_sell_price, True)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:

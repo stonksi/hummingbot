@@ -298,6 +298,17 @@ cdef class MarketBase(NetworkIterator):
         order_size_quantum = self.c_get_order_size_quantum(trading_pair, amount)
         return (amount // order_size_quantum) * order_size_quantum
 
+    ### Stonksi addition ###
+    cdef object c_quant_order_price(self, str trading_pair, object price, bint is_buy):
+        if price.is_nan():
+            return price
+        price_quantum = self.c_get_order_price_quantum(trading_pair, price)
+        if is_buy:
+            return floor(price / price_quantum) * price_quantum
+        else:
+            return ceil(price / price_quantum) * price_quantum
+    ### Stonksi addition ###
+
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>
 
@@ -316,7 +327,7 @@ cdef class MarketBase(NetworkIterator):
             self.logger().warning(f"{'Ask' if is_buy else 'Buy'} orderbook for {trading_pair} is empty.")
             return s_decimal_NaN
 
-        return self.c_quantize_order_price(trading_pair, top_price)
+        return self.c_quant_order_price(trading_pair, top_price, is_buy)
 
     cdef ClientOrderBookQueryResult c_get_vwap_for_volume(self, str trading_pair, bint is_buy, object volume):
         cdef:
@@ -335,7 +346,7 @@ cdef class MarketBase(NetworkIterator):
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_price_for_volume(is_buy, float(volume))
             object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.query_volume))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object result_price = self.c_quant_order_price(trading_pair, Decimal(result.result_price), is_buy)
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
