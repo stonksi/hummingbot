@@ -481,6 +481,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def order_amount_use_quote(self) -> bool:
         return self._order_amount_use_quote
+
+    @property
+    def active_non_hanging_non_cancelled_order_ids(self) -> List[int]:
+        ids = [o.client_order_id for o in self.active_orders if not self._hanging_orders_tracker.is_order_id_in_hanging_orders(o.client_order_id)
+              and not self._sb_order_tracker.has_in_flight_cancel(o.client_order_id)]
+        return ids
     ### Stonksi addition ###
 
 
@@ -1071,7 +1077,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_buys:
                 if order.price >= top_bid_price:
                     own_buy_size += order.quantity
-                    if order.price > own_top_bid_price:
+                    if order.price > own_top_bid_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
                         own_top_bid_price = order.price
 
             if own_buy_size > 0:
@@ -1132,7 +1138,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_sells:
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
-                    if order.price < own_top_ask_price:
+                    if order.price < own_top_ask_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
                         own_top_ask_price = order.price
 
             if own_sell_size > 0:
