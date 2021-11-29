@@ -762,7 +762,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ### Stonksi addition ###
             if self._apply_quote_logic:
                 mid_price = self._market_info.get_mid_price()
-                self.logger().warning(f"Mid price: {mid_price}")
                 self._order_amount /= mid_price
                 if self._ask_order_optimization_depth > 0:
                     self._ask_order_optimization_depth /= mid_price
