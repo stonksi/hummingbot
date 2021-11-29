@@ -1077,7 +1077,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     own_best_buy_price = order.price
                 if order.price >= top_bid_price:
                     own_buy_size += order.quantity
-                    if order.price > own_top_bid_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
+                    if order.price > own_top_bid_price:
                         own_top_bid_price = order.price
 
             #self.logger().warning(f"BUY PRE SIZE: own_top_bid_price = {own_top_bid_price}. top_bid_price = {top_bid_price}")
@@ -1114,9 +1114,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
                 if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price and lower_buy_price != price_above_bid:
                     next_price = Decimal(market.c_get_next_price(self.trading_pair, False, lower_buy_price))
+                    lower_buy_price = next_price
                     if next_price != own_best_buy_price:
-                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                        lower_buy_price = next_price
+                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))                       
                         i = 0
                         while lower_buy_price == next_price:
                             i += 1
@@ -1144,7 +1144,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     own_best_sell_price = order.price
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
-                    if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero) and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
+                    if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero):
                         own_top_ask_price = order.price
 
             self.logger().warning(f"SELL PRE SELL SIZE: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
@@ -1179,9 +1179,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
                 if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price and higher_sell_price != price_below_ask:
                     next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
+                    higher_sell_price = next_price
                     if next_price != own_best_sell_price:
-                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                        higher_sell_price = next_price
+                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))                       
                         i = 0
                         while higher_sell_price == next_price:
                             i += 1
