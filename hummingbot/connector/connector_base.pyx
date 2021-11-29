@@ -456,4 +456,19 @@ cdef class ConnectorBase(NetworkIterator):
         :param trading_pair: The market (e.g. BTC-USDT) of the order.
         """
         raise NotImplementedError
+    
+    cdef object c_quant_order_price(self, str trading_pair, object price, bint is_buy):
+        if price.is_nan():
+            return price
+        price_quantum = self.c_get_order_price_quantum(trading_pair, price)
+        if is_buy:
+            return floor(price / price_quantum) * price_quantum
+        else:
+            return ceil(price / price_quantum) * price_quantum
+
+    def quant_order_price(self, trading_pair: str, price: Decimal, is_buy: bint) -> Decimal:
+        """
+        Applies trading rule to quantize order price.
+        """
+        return self.c_quant_order_price(trading_pair, price, is_buy)
     ### Stonksi addition ###

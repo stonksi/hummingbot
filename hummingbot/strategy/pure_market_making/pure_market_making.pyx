@@ -968,12 +968,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         for buy in proposal.buys:
             size = buy.size * bid_adj_ratio
-            size = market.c_quantize_order_amount(self.trading_pair, size)
+            size = market.c_quant_order_price(self.trading_pair, size, False)
             buy.size = size
 
         for sell in proposal.sells:
             size = sell.size * ask_adj_ratio
-            size = market.c_quantize_order_amount(self.trading_pair, size, sell.price)
+            size = market.c_quant_order_price(self.trading_pair, size, sell.price, True)
             sell.size = size
 
     def adjusted_available_balance_for_orders_budget_constrain(self):
@@ -1003,7 +1003,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # Adjust buy order size to use remaining balance if less than the order amount
             if quote_balance < quote_size:
                 adjusted_amount = quote_balance / (buy.price * (Decimal("1") + buy_fee.percent))
-                adjusted_amount = market.c_quantize_order_amount(self.trading_pair, adjusted_amount)
+                adjusted_amount = market.c_quant_order_price(self.trading_pair, adjusted_amount, False)
                 buy.size = adjusted_amount
                 quote_balance = s_decimal_zero
             elif quote_balance == s_decimal_zero:
@@ -1018,7 +1018,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             # Adjust sell order size to use remaining balance if less than the order amount
             if base_balance < base_size:
-                adjusted_amount = market.c_quantize_order_amount(self.trading_pair, base_balance)
+                adjusted_amount = market.c_quant_order_price(self.trading_pair, base_balance, True)
                 sell.size = adjusted_amount
                 base_balance = s_decimal_zero
             elif base_balance == s_decimal_zero:
@@ -1122,7 +1122,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.buys):
-                    proposal.buys[j].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+                    proposal.buys[j].price = market.c_quant_order_price(self.trading_pair, lower_buy_price, False)
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
@@ -1184,7 +1184,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.sells):
-                    proposal.sells[j].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+                    proposal.sells[j].price = market.c_quant_order_price(self.trading_pair, higher_sell_price, True)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:

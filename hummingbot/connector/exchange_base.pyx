@@ -98,14 +98,14 @@ cdef class ExchangeBase(ConnectorBase):
             self.logger().warning(f"{'Ask' if is_buy else 'Buy'} orderbook for {trading_pair} is empty.")
             return s_decimal_NaN
 
-        return self.c_quantize_order_price(trading_pair, top_price)
+        return self.c_quant_order_price(trading_pair, top_price, is_buy)
 
     cdef ClientOrderBookQueryResult c_get_vwap_for_volume(self, str trading_pair, bint is_buy, object volume):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_vwap_for_volume(is_buy, float(volume))
             object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.query_volume))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object result_price = self.c_quant_order_price(trading_pair, Decimal(result.result_price), is_buy)
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
@@ -117,7 +117,7 @@ cdef class ExchangeBase(ConnectorBase):
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_price_for_volume(is_buy, float(volume))
             object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.query_volume))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object result_price = self.c_quant_order_price(trading_pair, Decimal(result.result_price), is_buy)
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
@@ -140,8 +140,8 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_volume_for_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object query_price = self.c_quant_order_price(trading_pair, Decimal(result.query_price), is_buy)
+            object result_price = self.c_quant_order_price(trading_pair, Decimal(result.result_price), is_buy)
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         return ClientOrderBookQueryResult(query_price,
                                           s_decimal_NaN,
@@ -152,8 +152,8 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_volume_for_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object query_price = self.c_quant_order_price(trading_pair, Decimal(result.query_price), is_buy)
+            object result_price = self.c_quant_order_price(trading_pair, Decimal(result.result_price), is_buy)
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         return ClientOrderBookQueryResult(query_price,
                                           s_decimal_NaN,
@@ -300,4 +300,7 @@ cdef class ExchangeBase(ConnectorBase):
     
     def cancel_all_orders(self, trading_pair: str):
         raise NotImplementedError
+
+    def quant_order_price(self, trading_pair: str, price: Decimal, is_buy: bint) -> Decimal:
+        return self.c_quant_order_price(trading_pair, price, is_buy)
     ### Stonksi addition ###

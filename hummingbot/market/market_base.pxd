@@ -52,3 +52,4 @@ cdef class MarketBase(NetworkIterator):
     cdef c_cancel_all_orders(self, str trading_pair)
     cdef object c_quant_order_price(self, str trading_pair, object price, bint is_buy)
     ### Stonksi addition ###
+    
