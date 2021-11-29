@@ -1083,8 +1083,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self.logger().warning(f"BUY PRE SIZE: top_bid_price = {top_bid_price}")
 
             if own_buy_size > 0:
-                top_bid_price = Decimal(self._market_info.get_price_for_volume(
-                    False, self._bid_order_optimization_depth + own_buy_size).result_price)
+                top_bid_price = Decimal(market.get_price_for_volume(self.trading_pair, False, self._bid_order_optimization_depth + own_buy_size).result_price)
             
             self.logger().warning(f"BUY AFTER: top_bid_price = {top_bid_price}")
 
@@ -1150,8 +1149,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             #self.logger().warning(f"SELL PRE SIZE: top_ask_price = {top_ask_price}")
 
             if own_sell_size > 0:
-                top_ask_price = Decimal(self._market_info.get_price_for_volume(
-                    True, self._ask_order_optimization_depth + own_sell_size).result_price)
+                top_ask_price = Decimal(market.get_price_for_volume(self.trading_pair, True, self._ask_order_optimization_depth + own_sell_size).result_price)
 
             #self.logger().warning(f"SELL AFTER: top_ask_price = {top_ask_price}")
 
