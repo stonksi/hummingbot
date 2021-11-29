@@ -1074,7 +1074,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_buys:
                 if order.price >= top_bid_price:
                     own_buy_size += order.quantity
-                    if order.price > own_top_bid_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
+                    if order.price > own_top_bid_price:
                         own_top_bid_price = order.price
 
             self.logger().warning(f"BUY PRE SIZE: own_top_bid_price = {own_top_bid_price}. top_bid_price = {top_bid_price}")
@@ -1139,7 +1139,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_sells:
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
-                    if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero) and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
+                    if order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero:
                         own_top_ask_price = order.price
 
             #self.logger().warning(f"SELL PRE SELL SIZE: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
