@@ -1086,7 +1086,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             
             if own_top_bid_price != top_bid_price:
             ### Stonksi addition ###
-                self.logger().warning(f"BUY: own_top_bid_price = {own_top_bid_price}. top_bid_price = {top_bid_price}")
+                #self.logger().warning(f"BUY: own_top_bid_price = {own_top_bid_price}. top_bid_price = {top_bid_price}")
 
                 price_quantum = Decimal(market.c_get_order_price_quantum(
                     self.trading_pair,
@@ -1117,7 +1117,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         i += 1
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
 
-                self.logger().warning(f"BUY FINAL: lower_buy_price = {lower_buy_price}.")         
+                #self.logger().warning(f"BUY FINAL: lower_buy_price = {lower_buy_price}.")         
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.buys):
@@ -1132,11 +1132,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
 
             ### Stonksi addition ###
-            if (self._ask_order_optimization_depth > 0):
-                top_ask_price = Decimal(self._market_info.get_price_for_volume(
-                    True, self._ask_order_optimization_depth).result_price)
-            else:
-                top_ask_price = Decimal(self._market_info.get_price(True))
+            #if (self._ask_order_optimization_depth > 0):
+            top_ask_price = Decimal(self._market_info.get_price_for_volume(
+                True, self._ask_order_optimization_depth).result_price)
+            #else:
+                #top_ask_price = Decimal(self._market_info.get_price(True))
 
             for order in self.active_sells:
                 if order.price <= top_ask_price:
@@ -1144,13 +1144,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     if order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero:
                         own_top_ask_price = order.price
 
+            self.logger().warning(f"SELL PRE SELL SIZE: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
+
             if own_sell_size > 0:
                 top_ask_price = Decimal(self._market_info.get_price_for_volume(
                     True, self._ask_order_optimization_depth + own_sell_size).result_price)
 
+            self.logger().warning(f"SELL AFTER: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
+
             if own_top_ask_price != top_ask_price:
-            ### Stonksi addition ###
-                self.logger().warning(f"SELL: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
+            ### Stonksi addition ###                
                 price_quantum = Decimal(market.c_get_order_price_quantum(
                     self.trading_pair,
                     top_ask_price
