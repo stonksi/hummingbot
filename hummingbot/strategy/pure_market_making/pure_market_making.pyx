@@ -1117,8 +1117,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum              
                 ### Stonksi addition ###
 
-                for i, proposed in enumerate(proposal.buys):
-                    proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+                for j, proposed in enumerate(proposal.buys):
+                    proposal.buys[j].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
@@ -1138,7 +1138,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for order in self.active_sells:
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
-                    if order.price < own_top_ask_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
+                    if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero) and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
                         own_top_ask_price = order.price
 
             if own_sell_size > 0:
@@ -1178,8 +1178,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
                 ### Stonksi addition ###
 
-                for i, proposed in enumerate(proposal.sells):
-                    proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+                for j, proposed in enumerate(proposal.sells):
+                    proposal.sells[j].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:
