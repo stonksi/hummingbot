@@ -1068,7 +1068,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             
             ### Stonksi addition ###           
-            top_bid_price = Decimal(self._market_info.get_price_for_volume(
+            top_bid_price = Decimal(market.get_price_for_volume(
                 False, self._bid_order_optimization_depth).result_price)
 
             for order in self.active_buys:
@@ -1133,7 +1133,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
 
             ### Stonksi addition ###
-            top_ask_price = Decimal(self._market_info.get_price_for_volume(
+            top_ask_price = Decimal(market.get_price_for_volume(
                 True, self._ask_order_optimization_depth).result_price)
 
             for order in self.active_sells:
