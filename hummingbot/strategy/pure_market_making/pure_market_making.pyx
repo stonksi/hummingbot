@@ -1068,11 +1068,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             
             ### Stonksi addition ###           
-            if (self._bid_order_optimization_depth > 0):
-                top_bid_price = Decimal(self._market_info.get_price_for_volume(
-                    False, self._bid_order_optimization_depth).result_price)
-            else:
-                top_bid_price = Decimal(self._market_info.get_price(False))
+            top_bid_price = Decimal(self._market_info.get_price_for_volume(
+                False, self._bid_order_optimization_depth).result_price)
 
             for order in self.active_buys:
                 if order.price >= top_bid_price:
@@ -1121,7 +1118,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         i += 1
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
 
-                self.logger().warning(f"---SELL FINAL---: lower_buy_price = {lower_buy_price}.")         
+                self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
                 ### Stonksi addition ###
 
                 for j, proposed in enumerate(proposal.buys):
@@ -1136,11 +1133,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
 
             ### Stonksi addition ###
-            #if (self._ask_order_optimization_depth > 0):
             top_ask_price = Decimal(self._market_info.get_price_for_volume(
                 True, self._ask_order_optimization_depth).result_price)
-            #else:
-                #top_ask_price = Decimal(self._market_info.get_price(True))
 
             for order in self.active_sells:
                 if order.price <= top_ask_price:
