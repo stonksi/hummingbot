@@ -1086,6 +1086,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             
             if own_top_bid_price != top_bid_price:
             ### Stonksi addition ###
+                self.logger().warning(f"BUY: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
 
                 price_quantum = Decimal(market.c_get_order_price_quantum(
                     self.trading_pair,
@@ -1147,7 +1148,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             if own_top_ask_price != top_ask_price:
             ### Stonksi addition ###
-
+                self.logger().warning(f"SELL: own_top_ask_price = {own_top_ask_price}. top_ask_price = {top_ask_price}")
                 price_quantum = Decimal(market.c_get_order_price_quantum(
                     self.trading_pair,
                     top_ask_price
