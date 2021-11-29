@@ -1080,12 +1080,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     #if order.price > own_top_bid_price:
                         #own_top_bid_price = order.price
 
-            self.logger().warning(f"BUY PRE SIZE: top_bid_price = {top_bid_price}")
+            #self.logger().warning(f"BUY PRE SIZE: top_bid_price = {top_bid_price}")
 
             if own_buy_size > 0:
                 top_bid_price = Decimal(market.get_price_for_volume(self.trading_pair, False, self._bid_order_optimization_depth + own_buy_size).result_price)
             
-            self.logger().warning(f"BUY AFTER: top_bid_price = {top_bid_price}")
+            #self.logger().warning(f"BUY AFTER: top_bid_price = {top_bid_price}")
 
             #if own_top_bid_price != top_bid_price:
             ### Stonksi addition ###
@@ -1121,7 +1121,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         i += 1
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
 
-            self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
+            #self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
             ### Stonksi addition ###
 
             for j, proposed in enumerate(proposal.buys):
