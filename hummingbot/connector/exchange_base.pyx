@@ -25,6 +25,13 @@ from hummingbot.core.data_type.limit_order import LimitOrder
 from hummingbot.core.data_type.order_book import OrderBook
 from hummingbot.connector.connector_base import ConnectorBase
 
+### Stonksi addition ###
+from math import (
+    floor,
+    ceil
+)
+### Stonksi addition ###
+
 NaN = float("nan")
 s_decimal_NaN = Decimal("nan")
 s_decimal_0 = Decimal(0)

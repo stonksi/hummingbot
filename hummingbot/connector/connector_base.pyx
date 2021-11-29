@@ -19,6 +19,13 @@ from hummingbot.core.event.events import OrderFilledEvent
 from hummingbot.client.config.global_config_map import global_config_map
 from hummingbot.core.utils.estimate_fee import estimate_fee
 
+### Stonksi addition ###
+from math import (
+    floor,
+    ceil
+)
+### Stonksi addition ###
+
 NaN = float("nan")
 s_decimal_NaN = Decimal("nan")
 s_decimal_0 = Decimal(0)
