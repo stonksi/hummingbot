@@ -1051,6 +1051,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object top_ask_price = s_decimal_zero
             object own_top_bid_price = s_decimal_zero
             object own_top_ask_price = s_decimal_zero
+            object own_best_buy_price = s_decimal_zero
+            object own_best_sell_price = s_decimal_zero
             ### Stonksi addition ###
 
         # for order in self.active_orders:
@@ -1071,6 +1073,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             top_bid_price = Decimal(market.get_price_for_volume(self.trading_pair, False, self._bid_order_optimization_depth).result_price)
 
             for order in self.active_buys:
+                if order.price > own_best_buy_price:
+                    own_best_buy_price = order.price
                 if order.price >= top_bid_price:
                     own_buy_size += order.quantity
                     if order.price > own_top_bid_price and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
@@ -1110,12 +1114,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
                 if self._order_optimization_failsafe_enabled and lower_buy_price == proposal.buys[0].price and lower_buy_price != price_above_bid:
                     next_price = Decimal(market.c_get_next_price(self.trading_pair, False, lower_buy_price))
-                    next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                    lower_buy_price = next_price
-                    i = 0
-                    while lower_buy_price == next_price:
-                        i += 1
-                        lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
+                    if next_price != own_best_buy_price:
+                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
+                        lower_buy_price = next_price
+                        i = 0
+                        while lower_buy_price == next_price:
+                            i += 1
+                            lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
 
                 self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
                 ### Stonksi addition ###
@@ -1135,6 +1140,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             top_ask_price = Decimal(market.get_price_for_volume(self.trading_pair, True, self._ask_order_optimization_depth).result_price)
 
             for order in self.active_sells:
+                if order.price < own_best_sell_price or own_best_sell_price == s_decimal_zero:
+                    own_best_sell_price = order.price
                 if order.price <= top_ask_price:
                     own_sell_size += order.quantity
                     if (order.price < own_top_ask_price or own_top_ask_price == s_decimal_zero) and order.client_order_id in self.active_non_hanging_non_cancelled_order_ids:
@@ -1172,12 +1179,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 ### Stonksi addition ###
                 if self._order_optimization_failsafe_enabled and higher_sell_price == proposal.sells[0].price and higher_sell_price != price_below_ask:
                     next_price = Decimal(market.c_get_next_price(self.trading_pair, True, higher_sell_price))
-                    next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
-                    higher_sell_price = next_price
-                    i = 0
-                    while higher_sell_price == next_price:
-                        i += 1
-                        higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
+                    if next_price != own_best_sell_price:
+                        next_price_quantum = Decimal(market.c_get_order_price_quantum(self.trading_pair, next_price))
+                        higher_sell_price = next_price
+                        i = 0
+                        while higher_sell_price == next_price:
+                            i += 1
+                            higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
                 #self.logger().warning(f"SELL FINAL: higher_sell_price = {higher_sell_price}.")    
                 ### Stonksi addition ###
 
