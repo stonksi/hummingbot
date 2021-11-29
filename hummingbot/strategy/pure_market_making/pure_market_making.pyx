@@ -1406,13 +1406,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._hanging_orders_tracker.update_strategy_orders_with_equivalent_orders()
 
         if cancel_buys:
-            for order in self.active_non_hanging_orders:
+            for order in self.active_non_hanging_non_cancelled_orders:
                 # If is about to be added to hanging_orders then don't cancel
                 if order.is_buy and not self._hanging_orders_tracker.is_potential_hanging_order(order):
                     self.c_cancel_order(self._market_info, order.client_order_id)
 
         if cancel_sells:
-            for order in self.active_non_hanging_orders:
+            for order in self.active_non_hanging_non_cancelled_orders:
                 # If is about to be added to hanging_orders then don't cancel
                 if not order.is_buy and not self._hanging_orders_tracker.is_potential_hanging_order(order):
                     self.c_cancel_order(self._market_info, order.client_order_id)
