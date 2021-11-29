@@ -485,7 +485,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def active_non_hanging_non_cancelled_order_ids(self) -> List[int]:
         ids = [o.client_order_id for o in self.active_orders if not self._hanging_orders_tracker.is_order_id_in_hanging_orders(o.client_order_id)
-              and not self._sb_order_tracker.has_in_flight_cancel(o.client_order_id)]
+              and not o.client_order_id in self._sb_order_tracker.in_flight_cancels]
         return ids
     ### Stonksi addition ###
 
