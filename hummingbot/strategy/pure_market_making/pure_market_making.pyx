@@ -160,6 +160,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._inventory_max_available_quote_balance = inventory_max_available_quote_balance
         self._order_amount_use_quote = order_amount_use_quote
         self._apply_quote_logic = order_amount_use_quote
+        self._buy_refresh_tolerance_pct = _order_refresh_tolerance_pct
+        self._sell_refresh_tolerance_pct = _order_refresh_tolerance_pct
         ### Stonksi addition ###
 
 
@@ -796,6 +798,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     self._order_amount = round(self._order_amount,12) 
                 elif self._order_amount >= 0.00000000001:
                     self._order_amount = round(self._order_amount,13) 
+            
+            self._buy_refresh_tolerance_pct = self._order_refresh_tolerance_pct
+            self._sell_refresh_tolerance_pct = self._order_refresh_tolerance_pct
             ### Stonksi addition ###
             
             
@@ -1118,7 +1123,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     i = 0
                     while lower_buy_price == next_price:
                         i += 1
-                        lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum     
+                        lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum
+
+                if self._buy_refresh_tolerance_pct == s_decimal_zero:
+                    self._buy_refresh_tolerance_pct = (1 - proposal.buys[0].price / lower_buy_price) / 3
 
             #self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
             ### Stonksi addition ###
@@ -1183,6 +1191,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     while higher_sell_price == next_price:
                         i += 1
                         higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
+            
+                if self._sell_refresh_tolerance_pct == s_decimal_zero:
+                    self._sell_refresh_tolerance_pct = (1 - higher_sell_price / proposal.sells[0].price) / 3
             #self.logger().warning(f"---SELL FINAL---: higher_sell_price = {higher_sell_price}.")    
             ### Stonksi addition ###
 
@@ -1339,14 +1350,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         #)
         ### Stonksi ###
 
-    cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices):
+    cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices, bint is_buy):
         if len(current_prices) != len(proposal_prices):
             return False
         current_prices = sorted(current_prices)
         proposal_prices = sorted(proposal_prices)
+        refresh_tolerance = self._buy_refresh_tolerance_pct if is_buy else self._sell_refresh_tolerance_pct
         for current, proposal in zip(current_prices, proposal_prices):
             # if spread diff is more than the tolerance or order quantities are different, return false.
-            if abs(proposal - current)/current > self._order_refresh_tolerance_pct:
+            if abs(proposal - current)/current > refresh_tolerance:
                 return False
         return True
 
@@ -1394,10 +1406,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ### Stonksi ###
 
             ### Stonksi addition ###
-            if self.c_is_within_tolerance(active_buy_prices, proposal_buys):
+            if self.c_is_within_tolerance(active_buy_prices, proposal_buys, True):
                 cancel_buys = False
             
-            if self.c_is_within_tolerance(active_sell_prices, proposal_sells):
+            if self.c_is_within_tolerance(active_sell_prices, proposal_sells, False):
                 cancel_sells = False
             ### Stonksi addition ###
 
@@ -1451,13 +1463,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         ### Stonksi ###
 
         ### Stonksi addition ###
-        non_hanging_orders_non_cancelled_buys = [o for o in self.active_non_hanging_orders if o.is_buy and not
+        non_hanging_orders_non_cancelled_buys = [o for o in self.active_non_hanging_non_cancelled_orders if o.is_buy and not
                                                 self._hanging_orders_tracker.is_potential_hanging_order(o)]
 
         if non_hanging_orders_non_cancelled_buys and proposal is not None:
             proposal.buys.clear()
 
-        non_hanging_orders_non_cancelled_sells = [o for o in self.active_non_hanging_orders if not o.is_buy and not
+        non_hanging_orders_non_cancelled_sells = [o for o in self.active_non_hanging_non_cancelled_orders if not o.is_buy and not
                                                 self._hanging_orders_tracker.is_potential_hanging_order(o)]
         
         if non_hanging_orders_non_cancelled_sells and proposal is not None:
