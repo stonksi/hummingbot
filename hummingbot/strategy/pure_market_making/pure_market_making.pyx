@@ -1123,7 +1123,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum
 
                 if self._buy_refresh_tolerance_pct == s_decimal_zero:
-                    self._buy_refresh_tolerance_pct = _bid_spread / 2
+                    self._buy_refresh_tolerance_pct = self._bid_spread / 2
             else:
                 self._buy_refresh_tolerance_pct = self._order_refresh_tolerance_pct
 
@@ -1192,7 +1192,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
             
                 if self._sell_refresh_tolerance_pct == s_decimal_zero:
-                    self._sell_refresh_tolerance_pct = _ask_spread / 2
+                    self._sell_refresh_tolerance_pct = self._ask_spread / 2
             else:
                 self._sell_refresh_tolerance_pct = self._order_refresh_tolerance_pct
             #self.logger().warning(f"---SELL FINAL---: higher_sell_price = {higher_sell_price}.")    
