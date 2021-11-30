@@ -469,9 +469,9 @@ cdef class ConnectorBase(NetworkIterator):
             return price
         price_quantum = self.c_get_order_price_quantum(trading_pair, price)
         if is_buy:
-            return floor(price / price_quantum) * price_quantum
+            return round(price / price_quantum) * price_quantum
         else:
-            return ceil(price / price_quantum) * price_quantum
+            return round(price / price_quantum) * price_quantum
 
     def quant_order_price(self, trading_pair: str, price: Decimal, is_buy: bint) -> Decimal:
         """
