@@ -160,8 +160,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._inventory_max_available_quote_balance = inventory_max_available_quote_balance
         self._order_amount_use_quote = order_amount_use_quote
         self._apply_quote_logic = order_amount_use_quote
-        self._buy_refresh_tolerance_pct = _order_refresh_tolerance_pct
-        self._sell_refresh_tolerance_pct = _order_refresh_tolerance_pct
+        self._buy_refresh_tolerance_pct = order_refresh_tolerance_pct
+        self._sell_refresh_tolerance_pct = order_refresh_tolerance_pct
         ### Stonksi addition ###
 
 
