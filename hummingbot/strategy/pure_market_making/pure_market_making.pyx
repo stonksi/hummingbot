@@ -798,9 +798,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     self._order_amount = round(self._order_amount,12) 
                 elif self._order_amount >= 0.00000000001:
                     self._order_amount = round(self._order_amount,13) 
-            
-            self._buy_refresh_tolerance_pct = self._order_refresh_tolerance_pct
-            self._sell_refresh_tolerance_pct = self._order_refresh_tolerance_pct
             ### Stonksi addition ###
             
             
@@ -1126,7 +1123,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         lower_buy_price = Decimal(ceil(next_price / next_price_quantum) + i) * next_price_quantum
 
                 if self._buy_refresh_tolerance_pct == s_decimal_zero:
-                    self._buy_refresh_tolerance_pct = (1 - proposal.buys[0].price / lower_buy_price) / 3
+                    self._buy_refresh_tolerance_pct = 1 - proposal.buys[0].price / lower_buy_price
+            else:
+                self._buy_refresh_tolerance_pct = self._order_refresh_tolerance_pct
 
             #self.logger().warning(f"---BUY FINAL---: lower_buy_price = {lower_buy_price}.")         
             ### Stonksi addition ###
@@ -1193,7 +1192,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         higher_sell_price = Decimal(floor(next_price / next_price_quantum) - i) * next_price_quantum                 
             
                 if self._sell_refresh_tolerance_pct == s_decimal_zero:
-                    self._sell_refresh_tolerance_pct = (1 - higher_sell_price / proposal.sells[0].price) / 3
+                    self._sell_refresh_tolerance_pct = 1 - higher_sell_price / proposal.sells[0].price
+            else:
+                self._sell_refresh_tolerance_pct = self._order_refresh_tolerance_pct
             #self.logger().warning(f"---SELL FINAL---: higher_sell_price = {higher_sell_price}.")    
             ### Stonksi addition ###
 
