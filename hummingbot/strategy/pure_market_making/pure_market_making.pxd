@@ -13,6 +13,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         object _ask_spread
         object _minimum_spread
         object _order_amount
+        bint _order_amount_use_quote
         int _order_levels
         int _buy_levels
         int _sell_levels
@@ -24,6 +25,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         double _order_refresh_time
         double _max_order_age
         object _order_refresh_tolerance_pct
+        bint _use_cancel_all
         double _filled_order_delay
         bint _inventory_skew_enabled
         object _inventory_target_base_pct
@@ -33,6 +35,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         bint _order_optimization_enabled
         object _ask_order_optimization_depth
         object _bid_order_optimization_depth
+        bint _order_optimization_failsafe_enabled
+        object _inventory_max_available_quote_balance
         bint _add_transaction_costs_to_orders
         object _asset_price_delegate
         object _inventory_cost_price_delegate
@@ -56,6 +60,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         int64_t _logging_options
         object _last_own_trade_price
         bint _should_wait_order_cancel_confirmation
+        bint _apply_quote_logic
 
         object _moving_price_band
 
