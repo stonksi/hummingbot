@@ -611,6 +611,8 @@ class MexcExchange(ExchangeBase):
             order_type_str = "LIMIT_ORDER"
         elif order_type is OrderType.LIMIT_MAKER:
             order_type_str = "POST_ONLY"
+        elif order_type is OrderType.MARKET:
+            order_type_str = "MARKET"
 
         data = {
             'client_order_id': order_id,
@@ -641,16 +643,19 @@ class MexcExchange(ExchangeBase):
         trading_rule = self._trading_rules[trading_pair]
 
         if not order_type.is_limit_type():
-            self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
-                               MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
-            raise Exception(f"Unsupported order type: {order_type}")
+            #self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
+            #                   MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
+            #raise Exception(f"Unsupported order type: {order_type}")
+            decimal_price = price
+            decimal_amount = self.quantize_order_amount(trading_pair, amount)
+        else:
+            decimal_price = self.quantize_order_price(trading_pair, price)
+            decimal_amount = self.quantize_order_amount(trading_pair, amount, decimal_price)            
+            if decimal_price * decimal_amount < trading_rule.min_notional_size:
+                self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
+                                   MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
+                raise ValueError(f"Buy order amount {decimal_amount} is lower than the notional size ")
 
-        decimal_price = self.quantize_order_price(trading_pair, price)
-        decimal_amount = self.quantize_order_amount(trading_pair, amount, decimal_price)
-        if decimal_price * decimal_amount < trading_rule.min_notional_size:
-            self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
-                               MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
-            raise ValueError(f"Buy order amount {decimal_amount} is lower than the notional size ")
         try:
             exchange_order_id = await self.place_order(order_id, trading_pair, decimal_amount, True, order_type,
                                                        decimal_price)
@@ -711,17 +716,19 @@ class MexcExchange(ExchangeBase):
         trading_rule = self._trading_rules[trading_pair]
 
         if not order_type.is_limit_type():
-            self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
-                               MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
-            raise Exception(f"Unsupported order type: {order_type}")
+            #self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
+            #                   MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
+            #raise Exception(f"Unsupported order type: {order_type}")
+            decimal_price = price
+            decimal_amount = self.quantize_order_amount(trading_pair, amount)
+        else:
+            decimal_price = self.quantize_order_price(trading_pair, price)
+            decimal_amount = self.quantize_order_amount(trading_pair, amount, decimal_price)
 
-        decimal_price = self.quantize_order_price(trading_pair, price)
-        decimal_amount = self.quantize_order_amount(trading_pair, amount, decimal_price)
-
-        if decimal_price * decimal_amount < trading_rule.min_notional_size:
-            self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
-                               MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
-            raise ValueError(f"Sell order amount {decimal_amount} is lower than the notional size ")
+            if decimal_price * decimal_amount < trading_rule.min_notional_size:
+                self.trigger_event(self.MARKET_ORDER_FAILURE_EVENT_TAG,
+                                   MarketOrderFailureEvent(self.current_timestamp, order_id, order_type))
+                raise ValueError(f"Sell order amount {decimal_amount} is lower than the notional size ")
 
         try:
             exchange_order_id = await self.place_order(order_id, trading_pair, decimal_amount, False, order_type,
