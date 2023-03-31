@@ -673,8 +673,8 @@ cdef class StrategyBase(TimeIterator):
         :param msg: The message to be notified
         """
         timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
+        #self.notify_hb_app(f"({timestamp}) {msg}")
         ts_str = timestamp.strftime('%Y-%m-%d %X.%f')
         self.notify_hb_app(f"({ts_str[:-4]}) {msg}")
-
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>

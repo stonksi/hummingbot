@@ -12,7 +12,10 @@ from hummingbot.strategy.script_strategy_base import ScriptStrategyBase
 
 class VWAPExample(ScriptStrategyBase):
     """
-    IMPORTANT: To run this example select CoinGecko as Rate Oracle.
+    BotCamp Cohort: Sept 2022
+    Design Template: https://hummingbot-foundation.notion.site/Simple-VWAP-Example-d43a929cc5bd45c6b1a72f63e6635618
+    Video: -
+    Description:
     This example lets you create one VWAP in a market using a percentage of the sum volume of the order book
     until a spread from the mid price.
     This example demonstrates:
@@ -66,8 +69,8 @@ class VWAPExample(ScriptStrategyBase):
         # USD conversion to quote and base asset
         conversion_base_asset = f"{base_asset}-USD"
         conversion_quote_asset = f"{quote_asset}-USD"
-        base_conversion_rate = RateOracle.get_instance().rate(conversion_base_asset)
-        quote_conversion_rate = RateOracle.get_instance().rate(conversion_quote_asset)
+        base_conversion_rate = RateOracle.get_instance().get_pair_rate(conversion_base_asset)
+        quote_conversion_rate = RateOracle.get_instance().get_pair_rate(conversion_quote_asset)
         vwap["start_price"] = vwap["connector"].get_price(vwap["trading_pair"], vwap["is_buy"])
         vwap["target_base_volume"] = vwap["total_volume_usd"] / base_conversion_rate
         vwap["ideal_quote_volume"] = vwap["total_volume_usd"] / quote_conversion_rate
