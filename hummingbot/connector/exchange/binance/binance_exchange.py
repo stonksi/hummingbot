@@ -29,8 +29,6 @@ from hummingbot.core.web_assistant.web_assistants_factory import WebAssistantsFa
 if TYPE_CHECKING:
     from hummingbot.client.config.config_helpers import ClientConfigAdapter
 
-s_logger = None
-
 
 class BinanceExchange(ExchangePyBase):
     UPDATE_ORDER_STATUS_MIN_INTERVAL = 10.0
@@ -118,6 +116,26 @@ class BinanceExchange(ExchangePyBase):
     def supported_order_types(self):
         return [OrderType.LIMIT, OrderType.LIMIT_MAKER]
 
+    async def get_all_pairs_prices(self) -> List[Dict[str, str]]:
+        pairs_prices = await self._api_get(path_url=CONSTANTS.TICKER_BOOK_PATH_URL)
+        return pairs_prices
+
+    def _is_request_exception_related_to_time_synchronizer(self, request_exception: Exception):
+        error_description = str(request_exception)
+        is_time_synchronizer_related = ("-1021" in error_description
+                                        and "Timestamp for this request" in error_description)
+        return is_time_synchronizer_related
+
+    def _is_order_not_found_during_status_update_error(self, status_update_exception: Exception) -> bool:
+        return str(CONSTANTS.ORDER_NOT_EXIST_ERROR_CODE) in str(
+            status_update_exception
+        ) and CONSTANTS.ORDER_NOT_EXIST_MESSAGE in str(status_update_exception)
+
+    def _is_order_not_found_during_cancelation_error(self, cancelation_exception: Exception) -> bool:
+        return str(CONSTANTS.UNKNOWN_ORDER_ERROR_CODE) in str(
+            cancelation_exception
+        ) and CONSTANTS.UNKNOWN_ORDER_MESSAGE in str(cancelation_exception)
+
     def _create_web_assistants_factory(self) -> WebAssistantsFactory:
         return web_utils.build_api_factory(
             throttler=self._throttler,
@@ -158,7 +176,8 @@ class BinanceExchange(ExchangePyBase):
                            amount: Decimal,
                            trade_type: TradeType,
                            order_type: OrderType,
-                           price: Decimal) -> Tuple[str, float]:
+                           price: Decimal,
+                           **kwargs) -> Tuple[str, float]:
         order_result = None
         amount_str = f"{amount:f}"
         price_str = f"{price:f}"
@@ -174,13 +193,23 @@ class BinanceExchange(ExchangePyBase):
         if order_type == OrderType.LIMIT:
             api_params["timeInForce"] = CONSTANTS.TIME_IN_FORCE_GTC
 
-        order_result = await self._api_post(
-            path_url=CONSTANTS.ORDER_PATH_URL,
-            data=api_params,
-            is_auth_required=True)
-        o_id = str(order_result["orderId"])
-        transact_time = order_result["transactTime"] * 1e-3
-        return (o_id, transact_time)
+        try:
+            order_result = await self._api_post(
+                path_url=CONSTANTS.ORDER_PATH_URL,
+                data=api_params,
+                is_auth_required=True)
+            o_id = str(order_result["orderId"])
+            transact_time = order_result["transactTime"] * 1e-3
+        except IOError as e:
+            error_description = str(e)
+            is_server_overloaded = ("status is 503" in error_description
+                                    and "Unknown error, please check your request or try again later." in error_description)
+            if is_server_overloaded:
+                o_id = "UNKNOWN"
+                transact_time = self._time_synchronizer.time()
+            else:
+                raise
+        return o_id, transact_time
 
     async def _place_cancel(self, order_id: str, tracked_order: InFlightOrder):
         symbol = await self.exchange_symbol_associated_to_pair(trading_pair=tracked_order.trading_pair)
@@ -277,7 +306,7 @@ class BinanceExchange(ExchangePyBase):
                         client_order_id = event_message.get("C")
 
                     if execution_type == "TRADE":
-                        tracked_order = self._order_tracker.fetch_order(client_order_id=client_order_id)
+                        tracked_order = self._order_tracker.all_fillable_orders.get(client_order_id)
                         if tracked_order is not None:
                             fee = TradeFeeBase.new_spot_fee(
                                 fee_schema=self.trade_fee_schema(),
@@ -298,7 +327,7 @@ class BinanceExchange(ExchangePyBase):
                             )
                             self._order_tracker.process_trade_update(trade_update)
 
-                    tracked_order = self.in_flight_orders.get(client_order_id)
+                    tracked_order = self._order_tracker.all_updatable_orders.get(client_order_id)
                     if tracked_order is not None:
                         order_update = OrderUpdate(
                             trading_pair=tracked_order.trading_pair,
@@ -343,7 +372,7 @@ class BinanceExchange(ExchangePyBase):
             query_time = int(self._last_trades_poll_binance_timestamp * 1e3)
             self._last_trades_poll_binance_timestamp = self._time_synchronizer.time()
             order_by_exchange_id_map = {}
-            for order in self._order_tracker.all_orders.values():
+            for order in self._order_tracker.all_fillable_orders.values():
                 order_by_exchange_id_map[order.exchange_order_id] = order
 
             tasks = []
@@ -421,52 +450,64 @@ class BinanceExchange(ExchangePyBase):
                             ))
                         self.logger().info(f"Recreating missing trade in TradeFill: {trade}")
 
-    async def _update_order_status(self):
-        # This is intended to be a backup measure to close straggler orders, in case Binance's user stream events
-        # are not working.
-        # The minimum poll interval for order status is 10 seconds.
-        last_tick = self._last_poll_timestamp / self.UPDATE_ORDER_STATUS_MIN_INTERVAL
-        current_tick = self.current_timestamp / self.UPDATE_ORDER_STATUS_MIN_INTERVAL
+    async def _all_trade_updates_for_order(self, order: InFlightOrder) -> List[TradeUpdate]:
+        trade_updates = []
 
-        tracked_orders: List[InFlightOrder] = list(self.in_flight_orders.values())
-        if current_tick > last_tick and len(tracked_orders) > 0:
-
-            tasks = [self._api_get(
-                path_url=CONSTANTS.ORDER_PATH_URL,
+        if order.exchange_order_id is not None:
+            exchange_order_id = int(order.exchange_order_id)
+            trading_pair = await self.exchange_symbol_associated_to_pair(trading_pair=order.trading_pair)
+            all_fills_response = await self._api_get(
+                path_url=CONSTANTS.MY_TRADES_PATH_URL,
                 params={
-                    "symbol": await self.exchange_symbol_associated_to_pair(trading_pair=o.trading_pair),
-                    "origClientOrderId": o.client_order_id},
-                is_auth_required=True) for o in tracked_orders]
-            self.logger().debug(f"Polling for order status updates of {len(tasks)} orders.")
-            results = await safe_gather(*tasks, return_exceptions=True)
-            for order_update, tracked_order in zip(results, tracked_orders):
-                client_order_id = tracked_order.client_order_id
+                    "symbol": trading_pair,
+                    "orderId": exchange_order_id
+                },
+                is_auth_required=True,
+                limit_id=CONSTANTS.MY_TRADES_PATH_URL)
 
-                # If the order has already been canceled or has failed do nothing
-                if client_order_id not in self.in_flight_orders:
-                    continue
+            for trade in all_fills_response:
+                exchange_order_id = str(trade["orderId"])
+                fee = TradeFeeBase.new_spot_fee(
+                    fee_schema=self.trade_fee_schema(),
+                    trade_type=order.trade_type,
+                    percent_token=trade["commissionAsset"],
+                    flat_fees=[TokenAmount(amount=Decimal(trade["commission"]), token=trade["commissionAsset"])]
+                )
+                trade_update = TradeUpdate(
+                    trade_id=str(trade["id"]),
+                    client_order_id=order.client_order_id,
+                    exchange_order_id=exchange_order_id,
+                    trading_pair=trading_pair,
+                    fee=fee,
+                    fill_base_amount=Decimal(trade["qty"]),
+                    fill_quote_amount=Decimal(trade["quoteQty"]),
+                    fill_price=Decimal(trade["price"]),
+                    fill_timestamp=trade["time"] * 1e-3,
+                )
+                trade_updates.append(trade_update)
 
-                if isinstance(order_update, Exception):
-                    self.logger().network(
-                        f"Error fetching status update for the order {client_order_id}: {order_update}.",
-                        app_warning_msg=f"Failed to fetch status update for the order {client_order_id}."
-                    )
-                    # Wait until the order not found error have repeated a few times before actually treating
-                    # it as failed. See: https://github.com/CoinAlpha/hummingbot/issues/601
-                    await self._order_tracker.process_order_not_found(client_order_id)
+        return trade_updates
 
-                else:
-                    # Update order execution status
-                    new_state = CONSTANTS.ORDER_STATE[order_update["status"]]
+    async def _request_order_status(self, tracked_order: InFlightOrder) -> OrderUpdate:
+        trading_pair = await self.exchange_symbol_associated_to_pair(trading_pair=tracked_order.trading_pair)
+        updated_order_data = await self._api_get(
+            path_url=CONSTANTS.ORDER_PATH_URL,
+            params={
+                "symbol": trading_pair,
+                "origClientOrderId": tracked_order.client_order_id},
+            is_auth_required=True)
 
-                    update = OrderUpdate(
-                        client_order_id=client_order_id,
-                        exchange_order_id=str(order_update["orderId"]),
-                        trading_pair=tracked_order.trading_pair,
-                        update_timestamp=order_update["updateTime"] * 1e-3,
-                        new_state=new_state,
-                    )
-                    self._order_tracker.process_order_update(update)
+        new_state = CONSTANTS.ORDER_STATE[updated_order_data["status"]]
+
+        order_update = OrderUpdate(
+            client_order_id=tracked_order.client_order_id,
+            exchange_order_id=str(updated_order_data["orderId"]),
+            trading_pair=tracked_order.trading_pair,
+            update_timestamp=updated_order_data["updateTime"] * 1e-3,
+            new_state=new_state,
+        )
+
+        return order_update
 
     async def _update_balances(self):
         local_asset_names = set(self._account_balances.keys())

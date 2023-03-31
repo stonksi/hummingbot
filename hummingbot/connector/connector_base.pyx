@@ -8,8 +8,10 @@ from hummingbot.connector.in_flight_order_base import InFlightOrderBase
 from hummingbot.connector.utils import split_hb_trading_pair, TradeFillOrderDetails
 from hummingbot.connector.constants import s_decimal_NaN, s_decimal_0
 from hummingbot.core.clock cimport Clock
+from hummingbot.core.data_type.limit_order import LimitOrder
 from hummingbot.core.data_type.cancellation_result import CancellationResult
 from hummingbot.core.data_type.common import OrderType, TradeType
+from hummingbot.core.data_type.market_order import MarketOrder
 from hummingbot.core.event.event_logger import EventLogger
 from hummingbot.core.event.events import MarketEvent, OrderFilledEvent
 from hummingbot.core.network_iterator import NetworkIterator
@@ -117,20 +119,19 @@ cdef class ConnectorBase(NetworkIterator):
         asset_balances = {}
         if in_flight_orders is None:
             return asset_balances
-        for order in [o for o in in_flight_orders.values() if not (o.is_done or o.is_failure or o.is_cancelled)]:
+        for order in (o for o in in_flight_orders.values() if not (o.is_done or o.is_failure or o.is_cancelled)):
+            outstanding_amount = order.amount - order.executed_amount_base
             if order.trade_type is TradeType.BUY:
-                order_value = Decimal(order.amount * order.price)
-                outstanding_value = order_value - order.executed_amount_quote
+                outstanding_value = outstanding_amount * order.price
                 if order.quote_asset not in asset_balances:
                     asset_balances[order.quote_asset] = s_decimal_0
                 fee = self.estimate_fee_pct(True)
-                outstanding_value *= (Decimal(1) + fee)
+                outstanding_value *= Decimal(1) + fee
                 asset_balances[order.quote_asset] += outstanding_value
             else:
-                outstanding_value = order.amount - order.executed_amount_base
                 if order.base_asset not in asset_balances:
                     asset_balances[order.base_asset] = s_decimal_0
-                asset_balances[order.base_asset] += outstanding_value
+                asset_balances[order.base_asset] += outstanding_amount
         return asset_balances
 
     def order_filled_balances(self, starting_timestamp = 0) -> Dict[str, Decimal]:
@@ -220,6 +221,9 @@ cdef class ConnectorBase(NetworkIterator):
         self._trade_volume_metric_collector.process_tick(timestamp)
 
     cdef c_start(self, Clock clock, double timestamp):
+        self.start(clock=clock, timestamp=timestamp)
+
+    def start(self, Clock clock, double timestamp):
         NetworkIterator.c_start(self, clock, timestamp)
         self._trade_volume_metric_collector.start()
 
@@ -236,7 +240,7 @@ cdef class ConnectorBase(NetworkIterator):
         """
         raise NotImplementedError
 
-    def buy(self, trading_pair: str, amount: Decimal, order_type: OrderType, price: Decimal) -> str:
+    def buy(self, trading_pair: str, amount: Decimal, order_type: OrderType, price: Decimal, **kwargs) -> str:
         """
         Buys an amount of base asset (of the given trading pair).
         :param trading_pair: The market (e.g. BTC-USDT) to buy from
@@ -249,9 +253,9 @@ cdef class ConnectorBase(NetworkIterator):
 
     cdef str c_buy(self, str trading_pair, object amount, object order_type=OrderType.MARKET,
                    object price=s_decimal_NaN, dict kwargs={}):
-        return self.buy(trading_pair, amount, order_type, price)
+        return self.buy(trading_pair, amount, order_type, price, **kwargs)
 
-    def sell(self, trading_pair: str, amount: Decimal, order_type: OrderType, price: Decimal) -> str:
+    def sell(self, trading_pair: str, amount: Decimal, order_type: OrderType, price: Decimal, **kwargs) -> str:
         """
         Sells an amount of base asset (of the given trading pair).
         :param trading_pair: The market (e.g. BTC-USDT) to sell from
@@ -262,9 +266,67 @@ cdef class ConnectorBase(NetworkIterator):
         """
         raise NotImplementedError
 
+    def batch_order_create(
+        self, orders_to_create: List[Union[LimitOrder, MarketOrder]]
+    ) -> List[Union[LimitOrder, MarketOrder]]:
+        """
+        Issues a batch order creation as a single API request for exchanges that implement this feature. The default
+        implementation of this method is to send the requests discretely (one by one).
+        :param orders_to_create: A list of LimitOrder or MarketOrder objects representing the orders to create. The
+            order IDs can be blanc.
+        :returns: A list of LimitOrder or MarketOrder objects representing the created orders, complete with the
+            generated order IDs.
+        """
+        creation_results = []
+        for order in orders_to_create:
+            order_type = OrderType.LIMIT if isinstance(order, LimitOrder) else OrderType.MARKET
+            size = order.quantity if order_type == OrderType.LIMIT else order.amount
+            if order.is_buy:
+                client_order_id = self.buy(
+                    trading_pair=order.trading_pair,
+                    amount=size,
+                    order_type=order_type,
+                    price=order.price if order_type == OrderType.LIMIT else s_decimal_NaN
+                )
+            else:
+                client_order_id = self.sell(
+                    trading_pair=order.trading_pair,
+                    amount=size,
+                    order_type=order_type,
+                    price=order.price if order_type == OrderType.LIMIT else s_decimal_NaN,
+                )
+            if order_type == OrderType.LIMIT:
+                creation_results.append(
+                    LimitOrder(
+                        client_order_id=client_order_id,
+                        trading_pair=order.trading_pair,
+                        is_buy=order.is_buy,
+                        base_currency=order.base_currency,
+                        quote_currency=order.quote_currency,
+                        price=order.price,
+                        quantity=size,
+                        filled_quantity=order.filled_quantity,
+                        creation_timestamp=order.creation_timestamp,
+                        status=order.status,
+                    )
+                )
+            else:
+                creation_results.append(
+                    MarketOrder(
+                        order_id=client_order_id,
+                        trading_pair=order.trading_pair,
+                        is_buy=order.is_buy,
+                        base_asset=order.base_asset,
+                        quote_asset=order.quote_asset,
+                        amount=size,
+                        timestamp=order.timestamp,
+                    )
+                )
+        return creation_results
+
     cdef str c_sell(self, str trading_pair, object amount, object order_type=OrderType.MARKET,
                     object price=s_decimal_NaN, dict kwargs={}):
-        return self.sell(trading_pair, amount, order_type, price)
+        return self.sell(trading_pair, amount, order_type, price, **kwargs)
 
     cdef c_cancel(self, str trading_pair, str client_order_id):
         self.cancel(trading_pair, client_order_id)
@@ -276,6 +338,15 @@ cdef class ConnectorBase(NetworkIterator):
         :param client_order_id: The internal order id (also called client_order_id)
         """
         raise NotImplementedError
+
+    def batch_order_cancel(self, orders_to_cancel: List[LimitOrder]):
+        """
+        Issues a batch order cancelation as a single API request for exchanges that implement this feature. The default
+        implementation of this method is to send the requests discretely (one by one).
+        :param orders_to_cancel: A list of the orders to cancel.
+        """
+        for order in orders_to_cancel:
+            self.cancel(trading_pair=order.trading_pair, client_order_id=order.client_order_id)
 
     cdef c_stop_tracking_order(self, str order_id):
         raise NotImplementedError
@@ -328,7 +399,7 @@ cdef class ConnectorBase(NetworkIterator):
         :param currency: the token symbol
         :param available_balance: the current available_balance, this is also the snap balance taken since last
         _update_balances()
-        :returns the real available that accounts for changes in in flight orders and filled orders
+        :returns the real available that accounts for changes in flight orders and filled orders
         """
         snapshot_bal = self.in_flight_asset_balances(self._in_flight_orders_snapshot).get(currency, s_decimal_0)
         in_flight_bal = self.in_flight_asset_balances(self.in_flight_orders).get(currency, s_decimal_0)
