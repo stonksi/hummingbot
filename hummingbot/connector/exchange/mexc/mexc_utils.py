@@ -16,7 +16,7 @@ CENTRALIZED = True
 
 EXAMPLE_PAIR = 'BTC-USDT'
 
-DEFAULT_FEES = [0.2, 0.2]
+DEFAULT_FEES = [0.0, 0.1]
 
 
 class MexcConfigMap(BaseConnectorConfigMap):

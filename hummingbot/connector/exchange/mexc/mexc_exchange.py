@@ -593,7 +593,7 @@ class MexcExchange(ExchangeBase):
         }
 
     def supported_order_types(self):
-        return [OrderType.LIMIT, OrderType.MARKET]
+        return [OrderType.LIMIT, OrderType.LIMIT_MAKER]
 
     @property
     def ready(self) -> bool:
@@ -691,7 +691,7 @@ class MexcExchange(ExchangeBase):
             self.logger().network(
                 f"Error submitting buy {order_type_str} order to Mexc for "
                 f"{decimal_amount} {trading_pair} "
-                f"{decimal_price if order_type is OrderType.LIMIT else ''}."
+                f"{decimal_price if order_type.is_limit_type() else ''}."
                 f"{decimal_price}." + repr(ex),
                 exc_info=True,
                 app_warning_msg="Failed to submit buy order to Mexc. Check API key and network connection."
@@ -764,7 +764,7 @@ class MexcExchange(ExchangeBase):
             self.logger().network(
                 f"Error submitting sell {order_type_str} order to Mexc for "
                 f"{decimal_amount} {trading_pair} "
-                f"{decimal_price if order_type is OrderType.LIMIT else ''}."
+                f"{decimal_price if order_type.is_limit_type() else ''}."
                 f"{decimal_price}." + ",ex:" + repr(ex),
                 exc_info=True,
                 app_warning_msg="Failed to submit sell order to Mexc. Check API key and network connection."
