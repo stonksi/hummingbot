@@ -317,7 +317,6 @@ class AmmArbStrategy(StrategyPyBase):
                                     f"Placing {side} order for {arb_side.amount} {arb_side.market_info.base_asset} "
                                     f"at {arb_side.market_info.market.display_name} at {arb_side.order_price} price")
 
-                arb_side.is_failed = False
                 order_id: str = await self.place_arb_order(
                     arb_side.market_info,
                     arb_side.is_buy,
