@@ -1096,7 +1096,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_bid_price
             )
             # Get the price above the top bid
-            price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
+            price_above_bid = (ceil(top_bid_price / price_quantum) + 2) * price_quantum
 
             ###### TEMP
             self.notify_hb_app_with_timestamp("BUY Proposal:")
@@ -1122,7 +1122,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
                 ######
                 next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
-                lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
+                lower_buy_price = (ceil(next_price / next_price_quantum) + 2) * next_price_quantum
                 ###### TEMP
                 self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
                 ######
@@ -1145,7 +1145,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_ask_price
             )
             # Get the price below the top ask
-            price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
+            price_below_ask = (floor(top_ask_price / price_quantum) - 2) * price_quantum
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
@@ -1159,7 +1159,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
                 next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
-                higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
+                higher_sell_price = (ceil(next_price / next_price_quantum) - 2) * next_price_quantum
             ##### End new code #####
 
             for i, proposed in enumerate(proposal.sells):
