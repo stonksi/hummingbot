@@ -362,8 +362,19 @@ class AmmArbStrategy(StrategyPyBase):
                     market.connector_name, market.chain, market.network, market_info.trading_pair):
                 order_price = await market.get_order_price(market_info.trading_pair, is_buy, amount, ignore_shim=True)
                 order_price *= slippage_buffer_factor
-
-        return place_order_fn(market_info, amount, market_info.market.get_taker_order_type(), order_price)
+        ##### NEW logic for using limit orders and slippage on CEX
+            order_type = market_info.market.get_taker_order_type()
+        else:
+            order_type = OrderType.LIMIT
+            slippage_buffer: Decimal = self._market_1_slippage_buffer
+            if market_info == self._market_info_2:
+                slippage_buffer = self._market_2_slippage_buffer
+            slippage_buffer_factor: Decimal = Decimal(1) + slippage_buffer
+            if not is_buy:
+                slippage_buffer_factor = Decimal(1) - slippage_buffer
+            order_price *= slippage_buffer_factor
+        #####
+        return place_order_fn(market_info, amount, order_type, order_price)
 
     def ready_for_new_arb_trades(self) -> bool:
         """
