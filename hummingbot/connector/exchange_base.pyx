@@ -1,4 +1,5 @@
 import asyncio
+import pandas as pd
 from decimal import Decimal
 from typing import Dict, List, Iterator, Mapping, Optional, TYPE_CHECKING
 
@@ -406,3 +407,22 @@ cdef class ExchangeBase(ConnectorBase):
 
     async def _get_last_traded_price(self, trading_pair: str) -> float:
         raise NotImplementedError
+
+    def notify_hb_app(self, msg: str):
+        """
+        Method called to display message on the Output Panel(upper left)
+        :param msg: The message to be notified
+        """
+        from hummingbot.client.hummingbot_application import HummingbotApplication
+        HummingbotApplication.main_application().notify(msg)
+
+    def notify_hb_app_with_timestamp(self, msg: str):
+        """
+        Method called to display message on the Output Panel(upper left)
+        This implementation adds the timestamp as the first element of the notification
+        :param msg: The message to be notified
+        """
+        timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
+        #self.notify_hb_app(f"({timestamp}) {msg}")
+        ts_str = timestamp.strftime('%Y-%m-%d %X.%f')
+        self.notify_hb_app(f"({ts_str[:-4]}) {msg}")
