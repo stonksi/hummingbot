@@ -172,8 +172,8 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_next_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object query_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.query_price)))
+            object result_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.result_price)))
         return ClientOrderBookQueryResult(query_price,
                                           s_decimal_NaN,
                                           result_price,
@@ -183,9 +183,9 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_vwap_for_volume(is_buy, float(volume))
-            object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.query_volume))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
-            object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
+            object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.query_volume)))
+            object result_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.result_price)))
+            object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.result_volume)))
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
                                           result_price,
@@ -210,12 +210,6 @@ cdef class ExchangeBase(ConnectorBase):
             object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.query_volume)))
             object result_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.result_price)))
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.result_volume)))
-        ###### TEMP
-        self.notify_hb_app_with_timestamp(f"result.result_price = {result.result_price}")  
-        self.notify_hb_app_with_timestamp(f"Decimal(result.result_price) = {Decimal(result.result_price)}")   
-        self.notify_hb_app_with_timestamp(f"result_price = {result_price}")        
-        ######
-
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
                                           result_price,
@@ -226,7 +220,7 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_quote_volume_for_base_amount(is_buy, float(base_amount))
-            object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.query_volume))
+            object query_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.query_volume)))
             object result_volume = Decimal(str(result.result_volume))
         return ClientOrderBookQueryResult(s_decimal_NaN,
                                           query_volume,
@@ -237,9 +231,9 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_volume_for_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
-            object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
+            object query_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.query_price)))
+            object result_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.result_price)))
+            object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(str(result.result_volume)))
         return ClientOrderBookQueryResult(query_price,
                                           s_decimal_NaN,
                                           result_price,
@@ -249,8 +243,8 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
             OrderBookQueryResult result = order_book.c_get_volume_for_price(is_buy, float(price))
-            object query_price = self.c_quantize_order_price(trading_pair, Decimal(result.query_price))
-            object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
+            object query_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.query_price)))
+            object result_price = self.c_quantize_order_price(trading_pair, Decimal(str(result.result_price)))
             object result_volume = Decimal(str(result.result_volume))
         return ClientOrderBookQueryResult(query_price,
                                           s_decimal_NaN,
@@ -261,16 +255,16 @@ cdef class ExchangeBase(ConnectorBase):
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
         for entry in order_book.bid_entries():
-            yield ClientOrderBookRow(self.c_quantize_order_price(trading_pair, Decimal(entry.price)),
-                                     self.c_quantize_order_amount(trading_pair, Decimal(entry.amount)),
+            yield ClientOrderBookRow(self.c_quantize_order_price(trading_pair, Decimal(str(entry.price))),
+                                     self.c_quantize_order_amount(trading_pair, Decimal(str(entry.amount))),
                                      entry.update_id)
 
     def order_book_ask_entries(self, trading_pair) -> Iterator[ClientOrderBookRow]:
         cdef:
             OrderBook order_book = self.c_get_order_book(trading_pair)
         for entry in order_book.ask_entries():
-            yield ClientOrderBookRow(self.c_quantize_order_price(trading_pair, Decimal(entry.price)),
-                                     self.c_quantize_order_amount(trading_pair, Decimal(entry.amount)),
+            yield ClientOrderBookRow(self.c_quantize_order_price(trading_pair, Decimal(str(entry.price))),
+                                     self.c_quantize_order_amount(trading_pair, Decimal(str(entry.amount))),
                                      entry.update_id)
 
     def get_vwap_for_volume(self, trading_pair: str, is_buy: bool, volume: Decimal):
