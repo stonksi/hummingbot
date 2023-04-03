@@ -747,6 +747,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     cdef c_tick(self, double timestamp):
         StrategyBase.c_tick(self, timestamp)
+        self.logger().info(f"Tick")
 
         cdef:
             int64_t current_tick = <int64_t>(timestamp // self._status_report_interval)
