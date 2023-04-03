@@ -1099,9 +1099,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
 
             ###### TEMP
-            self.notify_hb_app_with_timestamp("BUY Proposal:")
-            self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
-            self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
+            #self.notify_hb_app_with_timestamp("BUY Proposal:")
+            #self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
+            #self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
             ######
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
@@ -1112,7 +1112,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
             lower_buy_price = proposal.buys[0].price
             ###### TEMP
-            self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
+            #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
             ######
             if price_above_bid < lower_buy_price:
                 lower_buy_price = price_above_bid
