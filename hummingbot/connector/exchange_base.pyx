@@ -211,6 +211,7 @@ cdef class ExchangeBase(ConnectorBase):
             object result_price = self.c_quantize_order_price(trading_pair, Decimal(result.result_price))
             object result_volume = self.c_quantize_order_amount(trading_pair, Decimal(result.result_volume))
         ###### TEMP
+        self.notify_hb_app_with_timestamp(f"result.result_price = {result.result_price}")  
         self.notify_hb_app_with_timestamp(f"Decimal(result.result_price) = {Decimal(result.result_price)}")   
         self.notify_hb_app_with_timestamp(f"result_price = {result_price}")        
         ######
