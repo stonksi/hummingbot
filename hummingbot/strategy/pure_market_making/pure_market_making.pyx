@@ -1098,12 +1098,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
 
-            ###### TEMP
-            #self.notify_hb_app_with_timestamp("BUY Proposal:")
-            #self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
-            #self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
-            ######
-
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
             proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
@@ -1111,21 +1105,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             #
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
             lower_buy_price = proposal.buys[0].price
-            ###### TEMP
-            #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
-            ######
+
             if price_above_bid < lower_buy_price:
                 lower_buy_price = price_above_bid
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
-                ###### TEMP
-                self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
-                ######
                 next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
                 lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
-                ###### TEMP
-                self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
-                ######
             ##### End new code #####
 
             for i, proposed in enumerate(proposal.buys):
@@ -1147,6 +1133,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
 
+            ###### TEMP
+            self.notify_hb_app_with_timestamp("SELL Proposal:")
+            self.notify_hb_app_with_timestamp(f"top_ask_price = {top_ask_price}")   
+            self.notify_hb_app_with_timestamp(f"price_below_ask = {price_below_ask}")        
+            ######
+
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
             proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
@@ -1154,12 +1146,21 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             #
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
             higher_sell_price = proposal.sells[0].price
+            ###### TEMP
+            self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
+            ######
             if price_below_ask > higher_sell_price:
                 higher_sell_price = price_below_ask
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
+                ###### TEMP
+                self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
+                ######
                 next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
                 higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
+                ###### TEMP
+                self.notify_hb_app_with_timestamp(f"higher_sell_price (2) = {higher_sell_price}")        
+                ######
             ##### End new code #####
 
             for i, proposed in enumerate(proposal.sells):
