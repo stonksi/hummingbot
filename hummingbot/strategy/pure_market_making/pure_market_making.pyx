@@ -1406,9 +1406,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             ###### TEMP
             self.notify_hb_app_with_timestamp(f"active_buy_price = {active_buy_prices[0]}")    
-            self.notify_hb_app_with_timestamp(f"proposal_buy = {proposal_buys[0]}")        
+            self.notify_hb_app_with_timestamp(f"proposal_buy = {proposal_buys[0]}")   
+            self.notify_hb_app_with_timestamp(f"_is_best_buy = {self._is_best_buy}")     
             self.notify_hb_app_with_timestamp(f"active_sell_price = {active_sell_prices[0]}")    
-            self.notify_hb_app_with_timestamp(f"proposal_sell = {proposal_sells[0]}")      
+            self.notify_hb_app_with_timestamp(f"proposal_sell = {proposal_sells[0]}")    
+            self.notify_hb_app_with_timestamp(f"_is_best_sell = {self._is_best_sell}")     
             ######
 
             if self._is_best_buy and \
