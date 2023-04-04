@@ -1135,6 +1135,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                                               / (1  -self._bid_order_level_spreads[0] / Decimal("100")))
                     continue
                 proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
+                ###### TEMP
+                self.notify_hb_app_with_timestamp(f"proposal.buys[{i}].price = {proposal.buys[i].price}")        
+                ######
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
