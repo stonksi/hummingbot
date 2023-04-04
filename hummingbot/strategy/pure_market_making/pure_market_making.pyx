@@ -828,11 +828,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             top_buy_price = self._market_info.get_price(False)
             self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
-            self._is_best_buy = (own_buy_price > 0 >= top_buy_price)
+            self._is_best_buy = (0 < own_buy_price >= top_buy_price)
 
             top_sell_price = self._market_info.get_price(True)
             self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
-            self._is_best_sell = (own_sell_price > 0 <= top_sell_price)
+            self._is_best_sell = (0 < own_sell_price <= top_sell_price)
             ##### End logic for knowing if own orders are best prices #####
 
             proposal = None
@@ -1401,8 +1401,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             active_buy_prices = [Decimal(str(o.price)) for o in active_orders if o.is_buy]
             active_sell_prices = [Decimal(str(o.price)) for o in active_orders if not o.is_buy]
-            proposal_buys = [buy.price for buy in proposal.buys]
-            proposal_sells = [sell.price for sell in proposal.sells]
+            proposal_buys = [Decimal(str(buy.price)) for buy in proposal.buys]
+            proposal_sells = [Decimal(str(sell.price)) for sell in proposal.sells]
 
             ###### TEMP
             self.notify_hb_app_with_timestamp(f"active_buy_price = {active_buy_prices[0]}")    
