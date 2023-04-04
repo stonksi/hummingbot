@@ -61,6 +61,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         object _last_own_trade_price
         bint _should_wait_order_cancel_confirmation
         bint _apply_quote_logic
+        bint _is_best_buy
+        bint _is_best_sell
 
         object _moving_price_band
 
