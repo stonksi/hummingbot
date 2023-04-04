@@ -791,7 +791,7 @@ class MexcExchange(ExchangeBase):
                     tracked_order = self._in_flight_orders.get(client_order_id)
                     if tracked_order is None:
                         i = i + 1
-                        self.logger().network(f"Waiting for cancel order ({i})- {client_order_id}.")
+                        self.logger().network(f"Waiting for cancel order ({i}) - {client_order_id}.")
                     else:
                         i = 20
             if tracked_order is None:
