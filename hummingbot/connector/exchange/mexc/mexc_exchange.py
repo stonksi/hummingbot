@@ -669,7 +669,7 @@ class MexcExchange(ExchangeBase):
                 amount=decimal_amount
             )
             tracked_order = self._in_flight_orders.get(order_id)
-            if tracked_order is not None:
+            #if tracked_order is not None:
                 #self.logger().info(
                 #    f"Created {order_type.name.upper()} buy order {order_id} for {decimal_amount} {trading_pair}.")
             self.trigger_event(self.MARKET_BUY_ORDER_CREATED_EVENT_TAG,
@@ -743,7 +743,7 @@ class MexcExchange(ExchangeBase):
                 amount=decimal_amount
             )
             tracked_order = self._in_flight_orders.get(order_id)
-            if tracked_order is not None:
+            #if tracked_order is not None:
                 #self.logger().info(
                 #    f"Created {order_type.name.upper()} sell order {order_id} for {decimal_amount} {trading_pair}.")
             self.trigger_event(self.MARKET_SELL_ORDER_CREATED_EVENT_TAG,
