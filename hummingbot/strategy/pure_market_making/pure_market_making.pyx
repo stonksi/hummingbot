@@ -1133,8 +1133,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
             ######
-            if price_above_bid > lower_buy_price and (-1 * (price_above_bid - self.get_price()) / self.get_price()) >= self._minimum_spread:
-                lower_buy_price = price_above_bid
+            if price_above_bid > lower_buy_price:
+                best_price = price_above_bid
+                spread = (-1 * (best_price - self.get_price()) / self.get_price())
+                while (spread < self._minimum_spread):
+                    next_price = self._market_info.get_next_price(False, next_price).result_price
+                    next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                    best_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
+                    spread = (-1 * (best_price - self.get_price()) / self.get_price())
+                lower_buy_price = best_price
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
                 ###### TEMP
@@ -1186,8 +1193,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
             ######
-            if price_below_ask < higher_sell_price and (1 * (price_below_ask - self.get_price()) / self.get_price()) >= self._minimum_spread:
-                higher_sell_price = price_below_ask
+            #if price_below_ask < higher_sell_price and (1 * (price_below_ask - self.get_price()) / self.get_price()) >= self._minimum_spread:
+                #higher_sell_price = price_below_ask
+            if price_below_ask < higher_sell_price:
+                best_price = price_below_ask
+                spread = (1 * (best_price - self.get_price()) / self.get_price())
+                while (spread < self._minimum_spread):
+                    next_price = self._market_info.get_next_price(True, next_price).result_price
+                    next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                    best_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
+                    spread = (1 * (best_price - self.get_price()) / self.get_price())
+                higher_sell_price = best_price
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
                 ###### TEMP
