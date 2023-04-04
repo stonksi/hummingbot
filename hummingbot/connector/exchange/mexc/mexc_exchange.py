@@ -785,11 +785,15 @@ class MexcExchange(ExchangeBase):
         try:
             tracked_order = self._in_flight_orders.get(client_order_id)
             if tracked_order is None:
-                await asyncio.sleep(0.25)
-                tracked_order = self._in_flight_orders.get(client_order_id)
-                if tracked_order is None:
+                i = 0
+                while i < 20:
                     await asyncio.sleep(0.25)
                     tracked_order = self._in_flight_orders.get(client_order_id)
+                    if tracked_order is None:
+                        i = i + 1
+                        self.logger().network(f"Waiting for cancel order ({i})- {client_order_id}.")
+                    else:
+                        i = 20
             if tracked_order is None:
                 # raise ValueError(f"Failed to cancel order - {client_order_id}. Order not found.")
                 self.logger().network(f"Failed to cancel order - {client_order_id}. Order not found.")
