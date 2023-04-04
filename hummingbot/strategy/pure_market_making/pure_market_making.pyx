@@ -1132,12 +1132,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             lower_buy_price = min(proposal.buys[0].price, price_above_bid)
             
             ###### TEMP
-            self.notify_hb_app_with_timestamp("++++ BUY Proposal:")
-            self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
-            self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")   
-            self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")     
+            #self.notify_hb_app_with_timestamp("++++ BUY Proposal:")
+            #self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
+            #self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")   
+            #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")     
             ######
-            
+
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
             #lower_buy_price = Decimal(str(proposal.buys[0].price))
             #if price_above_bid < lower_buy_price:
@@ -1194,10 +1194,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             higher_sell_price = max(proposal.sells[0].price, price_below_ask)
 
             ###### TEMP
-            self.notify_hb_app_with_timestamp("---- SELL Proposal:")
-            self.notify_hb_app_with_timestamp(f"top_ask_price = {top_ask_price}")   
-            self.notify_hb_app_with_timestamp(f"price_below_ask = {price_below_ask}")    
-            self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
+            #self.notify_hb_app_with_timestamp("---- SELL Proposal:")
+            #self.notify_hb_app_with_timestamp(f"top_ask_price = {top_ask_price}")   
+            #self.notify_hb_app_with_timestamp(f"price_below_ask = {price_below_ask}")    
+            #self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
             ######
 
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
@@ -1412,12 +1412,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             proposal_sells = [Decimal(str(sell.price)) for sell in proposal.sells]
 
             ###### TEMP
-            self.notify_hb_app_with_timestamp(f"active_buy_price = {active_buy_prices[0] if active_buy_prices else Decimal('0')}")    
-            self.notify_hb_app_with_timestamp(f"proposal_buy = {proposal_buys[0] if proposal_buys else Decimal('0')}")   
-            self.notify_hb_app_with_timestamp(f"_is_best_buy = {self._is_best_buy}")     
-            self.notify_hb_app_with_timestamp(f"active_sell_price = {active_sell_prices[0] if active_sell_prices else Decimal('0')}")    
-            self.notify_hb_app_with_timestamp(f"proposal_sell = {proposal_sells[0] if proposal_sells else Decimal('0')}")    
-            self.notify_hb_app_with_timestamp(f"_is_best_sell = {self._is_best_sell}")     
+            #self.notify_hb_app_with_timestamp(f"active_buy_price = {active_buy_prices[0] if active_buy_prices else Decimal('0')}")    
+            #self.notify_hb_app_with_timestamp(f"proposal_buy = {proposal_buys[0] if proposal_buys else Decimal('0')}")   
+            #self.notify_hb_app_with_timestamp(f"_is_best_buy = {self._is_best_buy}")     
+            #self.notify_hb_app_with_timestamp(f"active_sell_price = {active_sell_prices[0] if active_sell_prices else Decimal('0')}")    
+            #self.notify_hb_app_with_timestamp(f"proposal_sell = {proposal_sells[0] if proposal_sells else Decimal('0')}")    
+            #self.notify_hb_app_with_timestamp(f"_is_best_sell = {self._is_best_sell}")     
             ######
 
             if (self._is_best_buy and self._is_best_sell) or \
