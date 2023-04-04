@@ -1099,9 +1099,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
 
             ###### TEMP
-            self.notify_hb_app_with_timestamp("BUY Proposal:")
-            self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
-            self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
+            #self.notify_hb_app_with_timestamp("BUY Proposal:")
+            #self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
+            #self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
             ######
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
@@ -1112,19 +1112,19 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
             lower_buy_price = proposal.buys[0].price
             ###### TEMP
-            self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
+            #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
             ######
             if price_above_bid < lower_buy_price:
                 lower_buy_price = price_above_bid
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
                 ###### TEMP
-                self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
+                #self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
                 ######
                 next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
                 lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
                 ###### TEMP
-                self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
+                #self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
                 ######
             ##### End new code #####
 
@@ -1136,7 +1136,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     continue
                 proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
                 ###### TEMP
-                self.notify_hb_app_with_timestamp(f"proposal.buys[{i}].price = {proposal.buys[i].price}")        
+                #self.notify_hb_app_with_timestamp(f"proposal.buys[{i}].price = {proposal.buys[i].price}")        
                 ######
 
         if len(proposal.sells) > 0:
@@ -1365,6 +1365,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             active_sell_prices = [Decimal(str(o.price)) for o in active_orders if not o.is_buy]
             proposal_buys = [buy.price for buy in proposal.buys]
             proposal_sells = [sell.price for sell in proposal.sells]
+
+            ###### TEMP
+            self.notify_hb_app_with_timestamp(f"active_buy_price = {active_buy_prices[0]}")    
+            self.notify_hb_app_with_timestamp(f"proposal_buy = {proposal_buys[0]}")        
+            self.notify_hb_app_with_timestamp(f"active_sell_price = {active_sell_prices[0]}")    
+            self.notify_hb_app_with_timestamp(f"proposal_sell = {proposal_sells[0]}")      
+            ######
 
             if self.c_is_within_tolerance(active_buy_prices, proposal_buys) and \
                     self.c_is_within_tolerance(active_sell_prices, proposal_sells):
