@@ -1105,8 +1105,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_bid_price
             )
 
-            self.notify_hb_app_with_timestamp(f"own_buy_price / top_bid_price = {own_buy_price} / {top_bid_price}")  
-            self._is_best_buy = (own_buy_price == top_bid_price)
+            top_buy_price = self._market_info.get_price(False)
+            self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
+            self._is_best_buy = (own_buy_price == top_buy_price)
 
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
@@ -1161,8 +1162,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_ask_price
             )
 
-            self.notify_hb_app_with_timestamp(f"own_sell_price / top_ask_price = {own_sell_price} / {top_ask_price}")  
-            self._is_best_sell = (own_sell_price == top_ask_price)
+            top_sell_price = self._market_info.get_price(True)
+            self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
+            self._is_best_sell = (own_sell_price == top_sell_price)
 
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
