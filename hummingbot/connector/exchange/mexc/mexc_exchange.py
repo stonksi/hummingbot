@@ -434,8 +434,8 @@ class MexcExchange(ExchangeBase):
                     if order_status == "CANCELED" or order_status == "PARTIALLY_CANCELED":
                         tracked_order.last_state = order_status
                         self.stop_tracking_order(tracked_order.client_order_id)
-                        self.logger().info(f"Order {tracked_order.client_order_id} has been canceled "
-                                           f"according to order delta restful API.")
+                        #self.logger().info(f"Order {tracked_order.client_order_id} has been canceled "
+                        #                   f"according to order delta restful API.")
                         self.trigger_event(self.MARKET_ORDER_CANCELED_EVENT_TAG,
                                            OrderCancelledEvent(self.current_timestamp,
                                                                tracked_order.client_order_id))
@@ -577,8 +577,8 @@ class MexcExchange(ExchangeBase):
 
         if order_status == "CANCELED" or order_status == "PARTIALLY_CANCELED":
             tracked_order.last_state = order_status
-            self.logger().info(f"Order {tracked_order.client_order_id} has been canceled "
-                               f"according to order delta websocket API.")
+            #self.logger().info(f"Order {tracked_order.client_order_id} has been canceled "
+            #                   f"according to order delta websocket API.")
             self.trigger_event(self.MARKET_ORDER_CANCELED_EVENT_TAG,
                                OrderCancelledEvent(self.current_timestamp,
                                                    tracked_order.client_order_id))
@@ -670,8 +670,8 @@ class MexcExchange(ExchangeBase):
             )
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is not None:
-                self.logger().info(
-                    f"Created {order_type.name.upper()} buy order {order_id} for {decimal_amount} {trading_pair}.")
+                #self.logger().info(
+                #    f"Created {order_type.name.upper()} buy order {order_id} for {decimal_amount} {trading_pair}.")
             self.trigger_event(self.MARKET_BUY_ORDER_CREATED_EVENT_TAG,
                                BuyOrderCreatedEvent(
                                    self.current_timestamp,
@@ -744,8 +744,8 @@ class MexcExchange(ExchangeBase):
             )
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is not None:
-                self.logger().info(
-                    f"Created {order_type.name.upper()} sell order {order_id} for {decimal_amount} {trading_pair}.")
+                #self.logger().info(
+                #    f"Created {order_type.name.upper()} sell order {order_id} for {decimal_amount} {trading_pair}.")
             self.trigger_event(self.MARKET_SELL_ORDER_CREATED_EVENT_TAG,
                                SellOrderCreatedEvent(
                                    self.current_timestamp,
@@ -784,6 +784,12 @@ class MexcExchange(ExchangeBase):
     async def execute_cancel(self, trading_pair: str, client_order_id: str):
         try:
             tracked_order = self._in_flight_orders.get(client_order_id)
+            if tracked_order is None:
+                await asyncio.sleep(0.25)
+                tracked_order = self._in_flight_orders.get(client_order_id)
+                if tracked_order is None:
+                    await asyncio.sleep(0.25)
+                    tracked_order = self._in_flight_orders.get(client_order_id)
             if tracked_order is None:
                 # raise ValueError(f"Failed to cancel order - {client_order_id}. Order not found.")
                 self.logger().network(f"Failed to cancel order - {client_order_id}. Order not found.")
