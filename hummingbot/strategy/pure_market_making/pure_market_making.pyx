@@ -827,11 +827,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     own_sell_price = Decimal(str(order.price))
 
             top_buy_price = self._market_info.get_price(False)
-            self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
+            #self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
             self._is_best_buy = (0 < own_buy_price >= top_buy_price)
 
             top_sell_price = self._market_info.get_price(True)
-            self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
+            #self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
             self._is_best_sell = (0 < own_sell_price <= top_sell_price)
             ##### End logic for knowing if own orders are best prices #####
 
@@ -1120,9 +1120,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
 
             ###### TEMP
-            #self.notify_hb_app_with_timestamp("BUY Proposal:")
-            #self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
-            #self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
+            self.notify_hb_app_with_timestamp("BUY Proposal:")
+            self.notify_hb_app_with_timestamp(f"top_bid_price = {top_bid_price}")   
+            self.notify_hb_app_with_timestamp(f"price_above_bid = {price_above_bid}")        
             ######
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
@@ -1180,9 +1180,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
 
             ###### TEMP
-            #self.notify_hb_app_with_timestamp("SELL Proposal:")
-            #self.notify_hb_app_with_timestamp(f"top_ask_price = {top_ask_price}")   
-            #self.notify_hb_app_with_timestamp(f"price_below_ask = {price_below_ask}")        
+            self.notify_hb_app_with_timestamp("SELL Proposal:")
+            self.notify_hb_app_with_timestamp(f"top_ask_price = {top_ask_price}")   
+            self.notify_hb_app_with_timestamp(f"price_below_ask = {price_below_ask}")        
             ######
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
