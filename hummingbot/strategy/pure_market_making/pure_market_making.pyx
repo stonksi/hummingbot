@@ -1118,8 +1118,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.trading_pair,
                 top_bid_price)))
 
-            ###### Get a 20th of the price-diff     
-            diff_change = (ceil(mid_price / mid_quantum) - ceil(top_bid_price / price_quantum)) // 20
+            ###### Get a 30th of the price-diff     
+            diff_change = (ceil(mid_price / mid_quantum) - ceil(top_bid_price / price_quantum)) // 30
             #####
 
             # Get the price above the top bid
@@ -1181,8 +1181,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.trading_pair,
                 top_ask_price)))
 
-            ###### Get a 20th of the price-diff     
-            diff_change = (floor(top_ask_price / price_quantum) - floor(mid_price / mid_quantum)) // 20
+            ###### Get a 30th of the price-diff     
+            diff_change = (floor(top_ask_price / price_quantum) - floor(mid_price / mid_quantum)) // 30
             #####
 
             # Get the price below the top ask
