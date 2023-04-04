@@ -1109,12 +1109,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if len(proposal.buys) > 0:              
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
-            top_bid_price = self._market_info.get_price_for_volume(
-                False, self._bid_order_optimization_depth + own_buy_size).result_price
-            price_quantum = market.c_get_order_price_quantum(
+            top_bid_price = Decimal(str(self._market_info.get_price_for_volume(
+                False, self._bid_order_optimization_depth + own_buy_size).result_price))
+            price_quantum = Decimal(str(market.c_get_order_price_quantum(
                 self.trading_pair,
                 top_bid_price
-            )
+            )))
 
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
@@ -1131,7 +1131,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # lower_buy_price = min(proposal.buys[0].price, price_above_bid)
             #
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
-            lower_buy_price = proposal.buys[0].price
+            lower_buy_price = Decimal(str(proposal.buys[0].price))
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
             ######
@@ -1139,17 +1139,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 best_price = price_above_bid
                 spread = (-1 * (best_price - self.get_price()) / self.get_price())
                 while (spread < self._minimum_spread):
-                    next_price = self._market_info.get_next_price(False, next_price).result_price
-                    next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                    next_price = Decimal(str(self._market_info.get_next_price(False, next_price).result_price))
+                    next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
                     best_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
                     spread = (-1 * (best_price - self.get_price()) / self.get_price())
                 lower_buy_price = best_price
             elif self._order_optimization_failsafe_enabled:
-                next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
+                next_price = Decimal(str(self._market_info.get_next_price(False, lower_buy_price).result_price))
                 ###### TEMP
                 #self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
                 ######
-                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
                 lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
                 ###### TEMP
                 #self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
@@ -1158,22 +1158,22 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             for i, proposed in enumerate(proposal.buys):
                 if self._split_order_levels_enabled:
-                    proposal.buys[i].price = (market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+                    proposal.buys[i].price = (Decimal(str(market.c_quantize_order_price(self.trading_pair, lower_buy_price)))
                                               * (1 - self._bid_order_level_spreads[i] / Decimal("100"))
                                               / (1  -self._bid_order_level_spreads[0] / Decimal("100")))
                     continue
-                proposal.buys[i].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)
+                proposal.buys[i].price = Decimal(str(market.c_quantize_order_price(self.trading_pair, lower_buy_price) * (1 - self.order_level_spread * i)))
                 ###### TEMP
                 #self.notify_hb_app_with_timestamp(f"proposal.buys[{i}].price = {proposal.buys[i].price}")        
                 ######
 
         if len(proposal.sells) > 0:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
-            top_ask_price = self._market_info.get_price_for_volume(
-                True, self._ask_order_optimization_depth + own_sell_size).result_price
-            price_quantum = market.c_get_order_price_quantum(
+            top_ask_price = Decimal(str(self._market_info.get_price_for_volume(
+                True, self._ask_order_optimization_depth + own_sell_size).result_price))
+            price_quantum = Decimal(str(market.c_get_order_price_quantum(
                 self.trading_pair,
-                top_ask_price
+                top_ask_price))
             )
 
             # Get the price below the top ask
@@ -1191,7 +1191,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # higher_sell_price = max(proposal.sells[0].price, price_below_ask)
             #
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
-            higher_sell_price = proposal.sells[0].price
+            higher_sell_price = Decimal(str(proposal.sells[0].price))
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
             ######
@@ -1201,17 +1201,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 best_price = price_below_ask
                 spread = (1 * (best_price - self.get_price()) / self.get_price())
                 while (spread < self._minimum_spread):
-                    next_price = self._market_info.get_next_price(True, next_price).result_price
-                    next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                    next_price = Decimal(str(self._market_info.get_next_price(True, next_price).result_price))
+                    next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
                     best_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
                     spread = (1 * (best_price - self.get_price()) / self.get_price())
                 higher_sell_price = best_price
             elif self._order_optimization_failsafe_enabled:
-                next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
+                next_price = Decimal(str(self._market_info.get_next_price(True, higher_sell_price).result_price))
                 ###### TEMP
                 #self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
                 ######
-                next_price_quantum = market.c_get_order_price_quantum(self.trading_pair, next_price)
+                next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
                 higher_sell_price = (ceil(next_price / next_price_quantum) - 1) * next_price_quantum
                 ###### TEMP
                 #self.notify_hb_app_with_timestamp(f"higher_sell_price (2) = {higher_sell_price}")        
@@ -1220,11 +1220,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             for i, proposed in enumerate(proposal.sells):
                 if self._split_order_levels_enabled:
-                    proposal.sells[i].price = (market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+                    proposal.sells[i].price = (Decimal(str(market.c_quantize_order_price(self.trading_pair, higher_sell_price)))
                                                * (1 + self._ask_order_level_spreads[i] / Decimal("100"))
                                                / (1 + self._ask_order_level_spreads[0] / Decimal("100")))
                     continue
-                proposal.sells[i].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price) * (1 + self.order_level_spread * i)
+                proposal.sells[i].price = Decimal(str(market.c_quantize_order_price(self.trading_pair, higher_sell_price) * (1 + self.order_level_spread * i)))
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:
