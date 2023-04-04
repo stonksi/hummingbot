@@ -817,6 +817,22 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 return
             ##### End hack #####
 
+            ##### Logic for knowing if own orders are best prices #####
+            for order in self.active_orders:
+                if order.is_buy:
+                    own_buy_price = Decimal(str(order.price))
+                else:
+                    own_sell_price = Decimal(str(order.price))
+
+            top_buy_price = self._market_info.get_price(False)
+            self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
+            self._is_best_buy = (own_buy_price == top_buy_price)
+
+            top_sell_price = self._market_info.get_price(True)
+            self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
+            self._is_best_sell = (own_sell_price == top_sell_price)
+            ##### End logic for knowing if own orders are best prices #####
+
             proposal = None
             if self._create_timestamp <= self._current_timestamp:
                 # 1. Create base order proposals
@@ -1082,19 +1098,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ExchangeBase market = self._market_info.market
             object own_buy_size = s_decimal_zero
             object own_sell_size = s_decimal_zero
-            object own_buy_price = s_decimal_zero
-            object own_sell_price = s_decimal_zero
-
-        self._is_best_buy = False
-        self._is_best_sell = False
 
         for order in self.active_orders:
             if order.is_buy:
                 own_buy_size = order.quantity
-                own_buy_price = order.price
             else:
                 own_sell_size = order.quantity
-                own_sell_price = order.price
 
         if len(proposal.buys) > 0:              
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
@@ -1104,10 +1113,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.trading_pair,
                 top_bid_price
             )
-
-            top_buy_price = self._market_info.get_price(False)
-            self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
-            self._is_best_buy = (own_buy_price == top_buy_price)
 
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
@@ -1128,7 +1133,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"lower_buy_price = {lower_buy_price}")        
             ######
-            if price_above_bid < lower_buy_price:
+            if price_above_bid > lower_buy_price and (-1 * (price_above_bid - self.get_price()) / self.get_price()) >= self._minimum_spread:
                 lower_buy_price = price_above_bid
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(False, lower_buy_price).result_price
@@ -1162,10 +1167,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 top_ask_price
             )
 
-            top_sell_price = self._market_info.get_price(True)
-            self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
-            self._is_best_sell = (own_sell_price == top_sell_price)
-
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
 
@@ -1185,7 +1186,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ###### TEMP
             #self.notify_hb_app_with_timestamp(f"higher_sell_price = {higher_sell_price}")        
             ######
-            if price_below_ask > higher_sell_price:
+            if price_below_ask < higher_sell_price and (1 * (price_below_ask - self.get_price()) / self.get_price()) >= self._minimum_spread:
                 higher_sell_price = price_below_ask
             elif self._order_optimization_failsafe_enabled:
                 next_price = self._market_info.get_next_price(True, higher_sell_price).result_price
