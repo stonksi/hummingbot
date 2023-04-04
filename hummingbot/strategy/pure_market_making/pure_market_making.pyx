@@ -818,6 +818,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ##### End hack #####
 
             ##### Logic for knowing if own orders are best prices #####
+            own_buy_price = Decimal('0')
+            own_sell_price = Decimal('0')
             for order in self.active_orders:
                 if order.is_buy:
                     own_buy_price = Decimal(str(order.price))
@@ -826,11 +828,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             top_buy_price = self._market_info.get_price(False)
             self.notify_hb_app_with_timestamp(f"own_buy_price / top_price = {own_buy_price} / {top_buy_price}")  
-            self._is_best_buy = (own_buy_price == top_buy_price)
+            self._is_best_buy = (own_buy_price > 0 >= top_buy_price)
 
             top_sell_price = self._market_info.get_price(True)
             self.notify_hb_app_with_timestamp(f"own_sell_price / top_sell_price = {own_sell_price} / {top_sell_price}")  
-            self._is_best_sell = (own_sell_price == top_sell_price)
+            self._is_best_sell = (own_sell_price > 0 <= top_sell_price)
             ##### End logic for knowing if own orders are best prices #####
 
             proposal = None
