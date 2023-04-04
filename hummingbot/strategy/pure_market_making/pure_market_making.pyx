@@ -1127,9 +1127,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             # If the price_above_bid is lower than the price suggested by the top pricing proposal,
             # lower the price and from there apply the order_level_spread to each order in the next levels
-            proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)
-            #
-            lower_buy_price = min(proposal.buys[0].price, price_above_bid)
+            proposal.buys = sorted(proposal.buys, key = lambda p: p.price, reverse = True)          
+            #lower_buy_price = min(proposal.buys[0], price_above_bid)
             
             ###### TEMP
             #self.notify_hb_app_with_timestamp("++++ BUY Proposal:")
@@ -1139,6 +1138,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ######
 
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
+            proposal_buy = Decimal(str(proposal.buys[0].price))
+            lower_buy_price = min(proposal_buy, price_above_bid)
+            #if lower_buy_price == proposal_buy and self._order_optimization_failsafe_enabled:
+            #    next_price = Decimal(str(self._market_info.get_next_price(False, lower_buy_price).result_price))
+            #    next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
+            #    lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum  
+            
+            
             #lower_buy_price = Decimal(str(proposal.buys[0].price))
             #if price_above_bid < lower_buy_price:
                 #best_price = price_above_bid
@@ -1151,14 +1158,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 #lower_buy_price = best_price
             #elif self._order_optimization_failsafe_enabled:
                 #next_price = Decimal(str(self._market_info.get_next_price(False, lower_buy_price).result_price))
-                ###### TEMP
-                #self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
-                ######
                 #next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
-                #lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum
-                ###### TEMP
-                #self.notify_hb_app_with_timestamp(f"lower_buy_price (2) = {lower_buy_price}")        
-                ######
+                #lower_buy_price = (ceil(next_price / next_price_quantum) + 1) * next_price_quantum      
             ##### End new code #####
 
             for i, proposed in enumerate(proposal.buys):
@@ -1189,9 +1190,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price and from there apply the order_level_spread to each order in the next levels
-            proposal.sells = sorted(proposal.sells, key = lambda p: p.price)
-            #
-            higher_sell_price = max(proposal.sells[0].price, price_below_ask)
+            proposal.sells = sorted(proposal.sells, key = lambda p: p.price)           
+            #higher_sell_price = max(proposal.sells[0].price, price_below_ask)
 
             ###### TEMP
             #self.notify_hb_app_with_timestamp("---- SELL Proposal:")
@@ -1201,6 +1201,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ######
 
             ###### Above is standard code. Below are additions to enable order_optimization_failsafe #####
+            proposal_sell = Decimal(str(proposal.sells[0].price))
+            higher_sell_price = max(proposal_sell, price_below_ask)
             #higher_sell_price = Decimal(str(proposal.sells[0].price))
             #if price_below_ask < higher_sell_price and (1 * (price_below_ask - self.get_price()) / self.get_price()) >= self._minimum_spread:
                 #higher_sell_price = price_below_ask
@@ -1215,14 +1217,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 #higher_sell_price = best_price
             #elif self._order_optimization_failsafe_enabled:
                 #next_price = Decimal(str(self._market_info.get_next_price(True, higher_sell_price).result_price))
-                ###### TEMP
-                #self.notify_hb_app_with_timestamp(f"next_price = {next_price}")        
-                ######
                 #next_price_quantum = Decimal(str(market.c_get_order_price_quantum(self.trading_pair, next_price)))
                 #higher_sell_price = (floor(next_price / next_price_quantum) - 1) * next_price_quantum
-                ###### TEMP
-                #self.notify_hb_app_with_timestamp(f"higher_sell_price (2) = {higher_sell_price}")        
-                ######
             ##### End new code #####
 
             for i, proposed in enumerate(proposal.sells):
